@@ -528,20 +528,13 @@ class BloopConverter(parameters: BloopParameters) {
       rootProject: Project,
       sourceSets: Set[SourceSet]
   ): Map[File, SourceSet] = {
-    rootProject
-      .getAllTasks(true)
-      .asScala
-      .values
-      .flatMap(tasks => {
-        tasks.asScala.collect {
-          case archiveTask: AbstractArchiveTask =>
-            val path = archiveTask.getArchivePath
-            getSourcePaths(archiveTask.getRootSpec())
-              .flatMap(sourcePath => sourceSets.find(_.getOutput == sourcePath))
-              .map(ss => path -> ss)
-        }.flatten
-      })
-      .toMap
+    val archiveSourceSets = for {
+      project <- rootProject.getAllprojects.asScala
+      archiveTask <- project.getTasks().withType(classOf[AbstractArchiveTask]).asScala
+      sourcePathObj <- getSourcePaths(archiveTask.getRootSpec())
+      sourcePath <- sourceSets.find(_.getOutput == sourcePathObj)
+    } yield archiveTask.getArchivePath -> sourcePath
+    archiveSourceSets.toMap
   }
 
   private def getAndroidClassPathItems(
