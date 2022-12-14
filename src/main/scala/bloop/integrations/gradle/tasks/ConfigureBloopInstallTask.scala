@@ -15,15 +15,18 @@ import org.gradle.api.tasks.TaskAction
 /**
  * Task to set the bloopInstall tasks's inputs
  *
- * The bloopInstall task depends on the dependency resolution, so it cannot decide its inputs
- * (used by the up-to-date checker) in configuration time. This task always runs and in build
- * time uses the resolved artifacts and the source sets to set up the associated bloopInstall
- * tasks's input dependencies.
+ * The bloopInstall task depends on the dependency resolution, so it cannot
+ * decide its inputs (used by the up-to-date checker) in configuration time.
+ * This task always runs and in build time uses the resolved artifacts and the
+ * source sets to set up the associated bloopInstall tasks's input
+ * dependencies.
  */
 class ConfigureBloopInstallTask extends DefaultTask with PluginUtils with TaskLogging {
   override val project: Project = getProject
 
-  /** The install task to set runtime, automatically set at plugin application */
+  /**
+   * The install task to set runtime, automatically set at plugin application
+   */
   var installTask: Option[Task] = None
 
   @TaskAction
@@ -44,20 +47,24 @@ class ConfigureBloopInstallTask extends DefaultTask with PluginUtils with TaskLo
   }
 
   /**
-   * Adds both the sources and the source set's configuration's resolved dependencies to the
-   * given tasks' inputs
+   * Adds both the sources and the source set's configuration's resolved
+   * dependencies to the given tasks' inputs
    */
   private def addSourceSetAsInputs(task: Task, sourceSet: SourceSet): Unit = {
-    val configuration = project.getConfiguration(sourceSet.getCompileClasspathConfigurationName)
+    val configuration =
+      project.getConfiguration(sourceSet.getCompileClasspathConfigurationName)
 
     val artifacts =
       configuration.getResolvedConfiguration.getLenientConfiguration.getArtifacts.asScala
     for (artifact <- artifacts) {
       // we don't want project artifacts, since they might not exist during bloopInstall
       val isNotProjectArtifact =
-        !artifact.getId.getComponentIdentifier.isInstanceOf[ProjectComponentIdentifier]
+        !artifact.getId.getComponentIdentifier
+          .isInstanceOf[ProjectComponentIdentifier]
       if (isNotProjectArtifact) {
-        debug(s"[Bloop] Artifact added as input: ${artifact.getFile.getAbsolutePath}")
+        debug(
+          s"[Bloop] Artifact added as input: ${artifact.getFile.getAbsolutePath}"
+        )
         task.getInputs.file(artifact.getFile)
       }
     }

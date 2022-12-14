@@ -1,7 +1,6 @@
 package bloop.integrations.gradle
 
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
 
 import scala.util.Properties
@@ -30,7 +29,8 @@ import org.junit.rules.TemporaryFolder
 // minimum supported version
 class ConfigGenerationSuite_5_0 extends ConfigGenerationSuite {
   protected val gradleVersion: String = "5.0"
-  protected val supportsCurrentJavaVersion: Boolean = !Properties.isJavaAtLeast("12")
+  protected val supportsCurrentJavaVersion: Boolean =
+    !Properties.isJavaAtLeast("12")
 }
 
 // maximum supported version
@@ -228,13 +228,16 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       val bloopDir = new File(testProjectDir.getRoot, ".bloop")
 
       val bloopADebug = new File(bloopDir, "a-debug.json")
-      val bloopADebugAndroidTest = new File(bloopDir, "a-debug-androidTest.json")
+      val bloopADebugAndroidTest =
+        new File(bloopDir, "a-debug-androidTest.json")
       val bloopARelease = new File(bloopDir, "a-release.json")
       val bloopBDebug = new File(bloopDir, "b-debug.json")
-      val bloopBDebugAndroidTest = new File(bloopDir, "b-debug-androidTest.json")
+      val bloopBDebugAndroidTest =
+        new File(bloopDir, "b-debug-androidTest.json")
       val bloopBRelease = new File(bloopDir, "b-release.json")
       val bloopCDebug = new File(bloopDir, "c-debug.json")
-      val bloopCDebugAndroidTest = new File(bloopDir, "c-debug-androidTest.json")
+      val bloopCDebugAndroidTest =
+        new File(bloopDir, "c-debug-androidTest.json")
       val bloopCRelease = new File(bloopDir, "c-release.json")
 
       val configADebug = readValidBloopConfig(bloopADebug)
@@ -258,31 +261,88 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(hasTag(configCRelease, Tag.Library))
 
       assert(configADebug.project.dependencies.isEmpty)
-      assertEquals(List("a-debug"), configADebugAndroidTest.project.dependencies.sorted)
+      assertEquals(
+        List("a-debug"),
+        configADebugAndroidTest.project.dependencies.sorted
+      )
       assert(configARelease.project.dependencies.isEmpty)
       assertEquals(List("a-debug"), configBDebug.project.dependencies.sorted)
-      assertEquals(List("a-debug", "b-debug"), configBDebugAndroidTest.project.dependencies.sorted)
-      assertEquals(List("a-release"), configBRelease.project.dependencies.sorted)
-      assertEquals(List("a-debug", "b-debug"), configCDebug.project.dependencies.sorted)
+      assertEquals(
+        List("a-debug", "b-debug"),
+        configBDebugAndroidTest.project.dependencies.sorted
+      )
+      assertEquals(
+        List("a-release"),
+        configBRelease.project.dependencies.sorted
+      )
+      assertEquals(
+        List("a-debug", "b-debug"),
+        configCDebug.project.dependencies.sorted
+      )
       assertEquals(
         List("a-debug", "b-debug", "c-debug"),
         configCDebugAndroidTest.project.dependencies.sorted
       )
-      assertEquals(List("a-release", "b-release"), configCRelease.project.dependencies.sorted)
+      assertEquals(
+        List("a-release", "b-release"),
+        configCRelease.project.dependencies.sorted
+      )
 
-      assert(hasCompileClasspathEntryName(configADebugAndroidTest, "/a-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configBDebug, "/a-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configBDebugAndroidTest, "/a-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configBDebugAndroidTest, "/b-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configBRelease, "/a-release/build/classes"))
+      assert(
+        hasCompileClasspathEntryName(
+          configADebugAndroidTest,
+          "/a-debug/build/classes"
+        )
+      )
+      assert(
+        hasCompileClasspathEntryName(configBDebug, "/a-debug/build/classes")
+      )
+      assert(
+        hasCompileClasspathEntryName(
+          configBDebugAndroidTest,
+          "/a-debug/build/classes"
+        )
+      )
+      assert(
+        hasCompileClasspathEntryName(
+          configBDebugAndroidTest,
+          "/b-debug/build/classes"
+        )
+      )
+      assert(
+        hasCompileClasspathEntryName(configBRelease, "/a-release/build/classes")
+      )
 
-      assert(hasCompileClasspathEntryName(configCDebug, "/a-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configCDebug, "/b-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configCDebugAndroidTest, "/a-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configCDebugAndroidTest, "/b-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configCDebugAndroidTest, "/c-debug/build/classes"))
-      assert(hasCompileClasspathEntryName(configCRelease, "/a-release/build/classes"))
-      assert(hasCompileClasspathEntryName(configCRelease, "/b-release/build/classes"))
+      assert(
+        hasCompileClasspathEntryName(configCDebug, "/a-debug/build/classes")
+      )
+      assert(
+        hasCompileClasspathEntryName(configCDebug, "/b-debug/build/classes")
+      )
+      assert(
+        hasCompileClasspathEntryName(
+          configCDebugAndroidTest,
+          "/a-debug/build/classes"
+        )
+      )
+      assert(
+        hasCompileClasspathEntryName(
+          configCDebugAndroidTest,
+          "/b-debug/build/classes"
+        )
+      )
+      assert(
+        hasCompileClasspathEntryName(
+          configCDebugAndroidTest,
+          "/c-debug/build/classes"
+        )
+      )
+      assert(
+        hasCompileClasspathEntryName(configCRelease, "/a-release/build/classes")
+      )
+      assert(
+        hasCompileClasspathEntryName(configCRelease, "/b-release/build/classes")
+      )
 
       assert(configADebug.project.test.isEmpty)
       assert(configADebugAndroidTest.project.test.nonEmpty)
@@ -295,13 +355,19 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(configCRelease.project.test.isEmpty)
 
       assertTrue(hasCompileClasspathEntryName(configADebug, "/R.jar"))
-      assertTrue(hasCompileClasspathEntryName(configADebugAndroidTest, "/R.jar"))
+      assertTrue(
+        hasCompileClasspathEntryName(configADebugAndroidTest, "/R.jar")
+      )
       assertTrue(hasCompileClasspathEntryName(configARelease, "/R.jar"))
       assertTrue(hasCompileClasspathEntryName(configBDebug, "/R.jar"))
-      assertTrue(hasCompileClasspathEntryName(configBDebugAndroidTest, "/R.jar"))
+      assertTrue(
+        hasCompileClasspathEntryName(configBDebugAndroidTest, "/R.jar")
+      )
       assertTrue(hasCompileClasspathEntryName(configBRelease, "/R.jar"))
       assertTrue(hasCompileClasspathEntryName(configCDebug, "/R.jar"))
-      assertTrue(hasCompileClasspathEntryName(configCDebugAndroidTest, "/R.jar"))
+      assertTrue(
+        hasCompileClasspathEntryName(configCDebugAndroidTest, "/R.jar")
+      )
       assertTrue(hasCompileClasspathEntryName(configCRelease, "/R.jar"))
     }
   }
@@ -483,16 +549,26 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
 
       assert(hasPathEntryName("src/main/java", resultConfig.project.sources))
       assert(hasPathEntryName("src/main/scala", resultConfig.project.sources))
-      assert(!hasPathEntryName("src/main/resources", resultConfig.project.sources))
+      assert(
+        !hasPathEntryName("src/main/resources", resultConfig.project.sources)
+      )
       assert(resultConfig.project.sources.size == 2)
       assert(resultConfig.project.resources.isDefined)
-      assert(hasPathEntryName("src/main/resources", resultConfig.project.resources.get))
+      assert(
+        hasPathEntryName(
+          "src/main/resources",
+          resultConfig.project.resources.get
+        )
+      )
       assert(resultConfig.project.resources.get.size == 1)
     }
   }
@@ -546,14 +622,21 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
       assert(hasPathEntryName("src/main/scala", resultConfig.project.sources))
-      assert(!hasPathEntryName("src/main/resources", resultConfig.project.sources))
+      assert(
+        !hasPathEntryName("src/main/resources", resultConfig.project.sources)
+      )
       assert(resultConfig.project.sources.size == 1)
       assert(resultConfig.project.resources.isDefined)
-      assert(hasPathEntryName("src/main/scala", resultConfig.project.resources.get))
+      assert(
+        hasPathEntryName("src/main/scala", resultConfig.project.resources.get)
+      )
       assert(resultConfig.project.resources.get.size == 1)
     }
   }
@@ -616,8 +699,20 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
           |}
       """.stripMargin
 
-      createSource(testProjectDir.getRoot, annotatedSource, "main", "FoobarValue", "java")
-      createSource(testProjectDir.getRoot, annotatedSourceUsage, "main", "FoobarValueMain", "java")
+      createSource(
+        testProjectDir.getRoot,
+        annotatedSource,
+        "main",
+        "FoobarValue",
+        "java"
+      )
+      createSource(
+        testProjectDir.getRoot,
+        annotatedSourceUsage,
+        "main",
+        "FoobarValueMain",
+        "java"
+      )
 
       GradleRunner
         .create()
@@ -628,7 +723,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
 
@@ -637,11 +735,11 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(!hasRuntimeClasspathEntryName(resultConfig, "org.immutables"))
       assert(resultConfig.project.java.isDefined)
       val processorPath =
-        resultConfig.project.java.get.options.dropWhile(_ != "-processorpath").drop(1)
+        resultConfig.project.java.get.options
+          .dropWhile(_ != "-processorpath")
+          .drop(1)
       assert(processorPath.nonEmpty)
       assert(processorPath.head.contains("value-2.8.2.jar"))
-      val bloopDir = new File(testProjectDir.getRoot, ".bloop")
-      //assert(compileBloopProject(projectName, bloopDir).status.isOk)
     }
   }
 
@@ -1071,7 +1169,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assertEquals(List("a"), configATest.project.dependencies)
       assertEquals(List("a", "b", "c"), configBTest.project.dependencies.sorted)
       assertEquals(List("c"), configCTest.project.dependencies)
-      assertEquals(List("a", "b", "c", "d"), configDTest.project.dependencies.sorted)
+      assertEquals(
+        List("a", "b", "c", "d"),
+        configDTest.project.dependencies.sorted
+      )
 
       assert(hasTag(configA, Tag.Library))
       assert(hasTag(configATest, Tag.Test))
@@ -1094,7 +1195,8 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
           )
           assertTrue(s"Sources for $entryName do not exist", sources.isDefined)
           assertTrue(
-            s"There are more sources than one for $entryName:\n${sources.get.artifacts.mkString("\n")}",
+            s"There are more sources than one for $entryName:\n${sources.get.artifacts
+                .mkString("\n")}",
             sources.exists(_.artifacts.size == 2)
           )
         }
@@ -1143,8 +1245,8 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(hasBothClasspathsEntryName(configDTest, "/c/src/main/resources"))
       assert(hasBothClasspathsEntryName(configDTest, "/d/src/main/resources"))
 
-      //assert(compileBloopProject("b", bloopDir).status.isOk)
-      //assert(compileBloopProject("d", bloopDir).status.isOk)
+      // assert(compileBloopProject("b", bloopDir).status.isOk)
+      // assert(compileBloopProject("d", bloopDir).status.isOk)
 
       assertNoConfigsHaveAnyJars(
         List(
@@ -1231,7 +1333,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       createHelloWorldScalaSource(buildDirA, "package x { trait A }")
       createHelloWorldScalaTestSource(buildDirA, "package y { trait B }")
-      createHelloWorldScalaTestSource(buildDirB, "package z { trait C extends x.A { } }")
+      createHelloWorldScalaTestSource(
+        buildDirB,
+        "package z { trait C extends x.A { } }"
+      )
 
       GradleRunner
         .create()
@@ -1262,18 +1367,30 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       assert(!hasRuntimeClasspathEntryName(configA, "/build/resources/main"))
       assert(!hasRuntimeClasspathEntryName(configB, "/build/resources/main"))
-      assert(!hasRuntimeClasspathEntryName(configATest, "/build/resources/main"))
-      assert(!hasRuntimeClasspathEntryName(configBTest, "/build/resources/main"))
+      assert(
+        !hasRuntimeClasspathEntryName(configATest, "/build/resources/main")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configBTest, "/build/resources/main")
+      )
 
       assert(!hasCompileClasspathEntryName(configA, "/build/resources/main"))
       assert(!hasCompileClasspathEntryName(configB, "/build/resources/main"))
-      assert(!hasCompileClasspathEntryName(configATest, "/build/resources/main"))
-      assert(!hasCompileClasspathEntryName(configBTest, "/build/resources/main"))
+      assert(
+        !hasCompileClasspathEntryName(configATest, "/build/resources/main")
+      )
+      assert(
+        !hasCompileClasspathEntryName(configBTest, "/build/resources/main")
+      )
 
       assert(!hasRuntimeClasspathEntryName(configA, "/a/build/classes"))
       assert(!hasRuntimeClasspathEntryName(configB, "/b/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configATest, "/a-test/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configBTest, "/b-test/build/classes"))
+      assert(
+        !hasRuntimeClasspathEntryName(configATest, "/a-test/build/classes")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configBTest, "/b-test/build/classes")
+      )
     }
   }
 
@@ -1342,7 +1459,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       createHelloWorldScalaSource(buildDirA, "package x { trait A }")
       createHelloWorldScalaTestSource(buildDirA, "package y { trait B }")
-      createHelloWorldScalaTestSource(buildDirB, "package z { trait C extends x.A { } }")
+      createHelloWorldScalaTestSource(
+        buildDirB,
+        "package z { trait C extends x.A { } }"
+      )
 
       GradleRunner
         .create()
@@ -1382,18 +1502,30 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       assert(!hasRuntimeClasspathEntryName(configA, "/build/resources/main"))
       assert(!hasRuntimeClasspathEntryName(configB, "/build/resources/main"))
-      assert(!hasRuntimeClasspathEntryName(configATest, "/build/resources/main"))
-      assert(!hasRuntimeClasspathEntryName(configBTest, "/build/resources/main"))
+      assert(
+        !hasRuntimeClasspathEntryName(configATest, "/build/resources/main")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configBTest, "/build/resources/main")
+      )
 
       assert(!hasCompileClasspathEntryName(configA, "/build/resources/main"))
       assert(!hasCompileClasspathEntryName(configB, "/build/resources/main"))
-      assert(!hasCompileClasspathEntryName(configATest, "/build/resources/main"))
-      assert(!hasCompileClasspathEntryName(configBTest, "/build/resources/main"))
+      assert(
+        !hasCompileClasspathEntryName(configATest, "/build/resources/main")
+      )
+      assert(
+        !hasCompileClasspathEntryName(configBTest, "/build/resources/main")
+      )
 
       assert(!hasRuntimeClasspathEntryName(configA, "/a/build/classes"))
       assert(!hasRuntimeClasspathEntryName(configB, "/b/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configATest, "/a-test/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configBTest, "/b-test/build/classes"))
+      assert(
+        !hasRuntimeClasspathEntryName(configATest, "/a-test/build/classes")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configBTest, "/b-test/build/classes")
+      )
 
       assert(hasBothClasspathsEntryName(configB, "/a/src/main/resources"))
       assert(hasBothClasspathsEntryName(configB, "/a/build/classes"))
@@ -1566,8 +1698,8 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       readValidBloopConfig(bloopC)
       readValidBloopConfig(bloopD)
 
-      //assert(compileBloopProject("b-foo", bloopDir).status.isOk)
-      //assert(compileBloopProject("d-foo", bloopDir).status.isOk)
+      // assert(compileBloopProject("b-foo", bloopDir).status.isOk)
+      // assert(compileBloopProject("d-foo", bloopDir).status.isOk)
     }
   }
 
@@ -1769,14 +1901,17 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         List("code-foo.json", "code-bar.json", "infra.json", "infra-foo.json")
 
       shouldNotExistFiles.foreach { file =>
-        assert(!new File(bloopDir, file).exists(), s"$file should not have been created!")
+        assert(
+          !new File(bloopDir, file).exists(),
+          s"$file should not have been created!"
+        )
       }
 
       readValidBloopConfig(bloopA)
       readValidBloopConfig(bloopB)
 
-      //assert(compileBloopProject("foo", bloopDir).status.isOk)
-      //assert(compileBloopProject("bar", bloopDir).status.isOk)
+      // assert(compileBloopProject("foo", bloopDir).status.isOk)
+      // assert(compileBloopProject("bar", bloopDir).status.isOk)
     }
   }
 
@@ -1846,7 +1981,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       )
 
       createHelloWorldScalaTestSource(buildDirA, "package x { trait A }")
-      createHelloWorldScalaTestSource(buildDirB, "package y { trait B extends x.A { } }")
+      createHelloWorldScalaTestSource(
+        buildDirB,
+        "package y { trait B extends x.A { } }"
+      )
 
       GradleRunner
         .create()
@@ -1894,7 +2032,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         List("a", "a-test", "b", "b-test")
       )
 
-      //assert(compileBloopProject("b", bloopDir).status.isOk)
+      // assert(compileBloopProject("b", bloopDir).status.isOk)
     }
   }
 
@@ -1963,7 +2101,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       )
 
       createHelloWorldScalaSource(buildDirA, "package x { trait A }")
-      createHelloWorldScalaSource(buildDirB, "package z { trait C extends x.A { } }")
+      createHelloWorldScalaSource(
+        buildDirB,
+        "package z { trait C extends x.A { } }"
+      )
 
       GradleRunner
         .create()
@@ -1996,7 +2137,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         List("a", "b")
       )
 
-      //assert(compileBloopProject("b", bloopDir).status.isOk)
+      // assert(compileBloopProject("b", bloopDir).status.isOk)
     }
   }
 
@@ -2079,7 +2220,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       createHelloWorldScalaSource(buildDirA, "package x { trait A }")
       createHelloWorldScalaTestSource(buildDirA, "package y { trait B }")
-      createHelloWorldScalaTestSource(buildDirB, "package z { trait C extends x.A with y.B { } }")
+      createHelloWorldScalaTestSource(
+        buildDirB,
+        "package z { trait C extends x.A with y.B { } }"
+      )
 
       GradleRunner
         .create()
@@ -2110,7 +2254,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(configA.project.dependencies.isEmpty)
       assert(configB.project.dependencies.isEmpty)
       assertEquals(List("a"), configATest.project.dependencies.sorted)
-      assertEquals(List("a", "a-test", "b"), configBTest.project.dependencies.sorted)
+      assertEquals(
+        List("a", "a-test", "b"),
+        configBTest.project.dependencies.sorted
+      )
 
       assert(!hasCompileClasspathEntryName(configB, "/a/build/classes"))
       assert(!hasRuntimeClasspathEntryName(configB, "/a/build/classes"))
@@ -2124,7 +2271,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         List("a", "a-test", "b", "b-test")
       )
 
-      //assert(compileBloopProject("b-test", bloopDir).status.isOk)
+      // assert(compileBloopProject("b-test", bloopDir).status.isOk)
     }
   }
 
@@ -2194,7 +2341,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       createHelloWorldScalaSource(buildDirA, "package x { trait A }")
       createHelloWorldScalaTestFixtureSource(buildDirA, "package y { trait B }")
-      createHelloWorldScalaTestSource(buildDirB, "package z { trait C extends x.A with y.B { } }")
+      createHelloWorldScalaTestSource(
+        buildDirB,
+        "package z { trait C extends x.A with y.B { } }"
+      )
 
       GradleRunner
         .create()
@@ -2225,29 +2375,48 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(configA.project.dependencies.isEmpty)
       assert(configB.project.dependencies.isEmpty)
       assertEquals(List("a"), configATestFixtures.project.dependencies.sorted)
-      assertEquals(List("a", "a-testFixtures", "b"), configBTest.project.dependencies.sorted)
+      assertEquals(
+        List("a", "a-testFixtures", "b"),
+        configBTest.project.dependencies.sorted
+      )
 
-      assert(!hasCompileClasspathEntryName(configA, "/a-testFixtures/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configA, "/a-testFixtures/build/classes"))
-      assert(hasBothClasspathsEntryName(configATestFixtures, "/a/build/classes"))
+      assert(
+        !hasCompileClasspathEntryName(configA, "/a-testFixtures/build/classes")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configA, "/a-testFixtures/build/classes")
+      )
+      assert(
+        hasBothClasspathsEntryName(configATestFixtures, "/a/build/classes")
+      )
       assert(!hasCompileClasspathEntryName(configB, "/a/build/classes"))
       assert(!hasRuntimeClasspathEntryName(configB, "/a/build/classes"))
       assert(!hasCompileClasspathEntryName(configB, "/a-test/build/classes"))
       assert(!hasRuntimeClasspathEntryName(configB, "/a-test/build/classes"))
-      assert(!hasCompileClasspathEntryName(configB, "/a-testFixtures/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configB, "/a-testFixtures/build/classes"))
+      assert(
+        !hasCompileClasspathEntryName(configB, "/a-testFixtures/build/classes")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configB, "/a-testFixtures/build/classes")
+      )
       assert(hasBothClasspathsEntryName(configBTest, "/b/build/classes"))
       assert(hasBothClasspathsEntryName(configBTest, "/a/build/classes"))
-      assert(hasBothClasspathsEntryName(configBTest, "/a-testFixtures/build/classes"))
-      assert(!hasCompileClasspathEntryName(configBTest, "/a-test/build/classes"))
-      assert(!hasRuntimeClasspathEntryName(configBTest, "/a-test/build/classes"))
+      assert(
+        hasBothClasspathsEntryName(configBTest, "/a-testFixtures/build/classes")
+      )
+      assert(
+        !hasCompileClasspathEntryName(configBTest, "/a-test/build/classes")
+      )
+      assert(
+        !hasRuntimeClasspathEntryName(configBTest, "/a-test/build/classes")
+      )
 
       assertNoConfigsHaveAnyJars(
         List(configA, configATestFixtures, configB, configBTest),
         List("a", "a-test", "a-test-fixtures", "b", "b-test")
       )
 
-      //assert(compileBloopProject("b-test", bloopDir).status.isOk)
+      // assert(compileBloopProject("b-test", bloopDir).status.isOk)
     }
   }
 
@@ -2330,7 +2499,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       createHelloWorldScalaSource(buildDirA, "package x { trait A }")
       createHelloWorldScalaTestSource(buildDirA, "package y { trait B }")
-      createHelloWorldScalaTestSource(buildDirB, "package z { trait C extends x.A with y.B { } }")
+      createHelloWorldScalaTestSource(
+        buildDirB,
+        "package z { trait C extends x.A with y.B { } }"
+      )
 
       GradleRunner
         .create()
@@ -2361,7 +2533,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(configA.project.dependencies.isEmpty)
       assert(configB.project.dependencies.isEmpty)
       assertEquals(List("a"), configATest.project.dependencies.sorted)
-      assertEquals(List("a", "a-test", "b"), configBTest.project.dependencies.sorted)
+      assertEquals(
+        List("a", "a-test", "b"),
+        configBTest.project.dependencies.sorted
+      )
 
       assert(!hasCompileClasspathEntryName(configB, "/a/build/classes"))
       assert(!hasRuntimeClasspathEntryName(configB, "/a/build/classes"))
@@ -2375,7 +2550,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         List("a", "a-test", "b", "b-test")
       )
 
-      //assert(compileBloopProject("b-test", bloopDir).status.isOk)
+      // assert(compileBloopProject("b-test", bloopDir).status.isOk)
     }
   }
 
@@ -2419,7 +2594,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
 
@@ -2480,7 +2658,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
 
@@ -2498,7 +2679,15 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         resultConfig.project.`scala`.get.options
       )
       val expectedOptions =
-        List("-source", "1.2", "-target", "1.3", "-g", "-sourcepath", "-XDuseUnsharedTable=true")
+        List(
+          "-source",
+          "1.2",
+          "-target",
+          "1.3",
+          "-g",
+          "-sourcepath",
+          "-XDuseUnsharedTable=true"
+        )
       val obtainedOptions = resultConfig.project.java.get.options
       assert(expectedOptions.forall(opt => obtainedOptions.contains(opt)))
       assert(!obtainedOptions.contains("--release"))
@@ -2537,7 +2726,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .withArguments("bloopInstall", "-Si")
         .build()
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
       val resultConfig = readValidBloopConfig(bloopFile)
       val expectedOptions = List("--release", "9")
       val obtainedOptions = resultConfig.project.java.get.options
@@ -2669,7 +2861,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         )
       )
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
       assertFalse(bloopFile.exists())
     }
   }
@@ -2770,9 +2965,12 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(!hasCompileClasspathEntryName(configBTest, "tools.jar"))
       assert(hasRuntimeClasspathEntryName(configBTest, "tools.jar"))
 
-      assertNoConfigsHaveAnyJars(List(configB, configBTest), List("a", "a-test", "b", "b-test"))
+      assertNoConfigsHaveAnyJars(
+        List(configB, configBTest),
+        List("a", "a-test", "b", "b-test")
+      )
 
-      //assert(compileBloopProject("b", bloopDir).status.isOk)
+      // assert(compileBloopProject("b", bloopDir).status.isOk)
     }
   }
 
@@ -2816,10 +3014,16 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(projectConfig.project.`scala`.isEmpty)
       assert(projectConfig.project.platform.nonEmpty)
       assert(projectConfig.project.platform.get.mainClass.nonEmpty)
-      assertEquals("org.main.name", projectConfig.project.platform.get.mainClass.get)
+      assertEquals(
+        "org.main.name",
+        projectConfig.project.platform.get.mainClass.get
+      )
       val platform = projectConfig.project.platform
       val config = platform.get.asInstanceOf[Platform.Jvm].config
-      assertEquals(Set("-Dgreeting.language=en", "-Xmx16g"), config.options.toSet)
+      assertEquals(
+        Set("-Dgreeting.language=en", "-Xmx16g"),
+        config.options.toSet
+      )
       assert(projectConfig.project.dependencies.isEmpty)
       assert(projectConfig.project.classpath.isEmpty)
       assert(hasTag(projectConfig, Tag.Library))
@@ -2828,7 +3032,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(projectConfig.project.`scala`.isEmpty)
       assertEquals(projectTestConfig.project.dependencies, List(projectName))
       assert(hasTag(projectTestConfig, Tag.Test))
-      //assert(compileBloopProject(s"${projectName}-test", bloopDir).status.isOk)
+      // assert(compileBloopProject(s"${projectName}-test", bloopDir).status.isOk)
     }
   }
 
@@ -2919,7 +3123,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(projectConfig.project.platform.get.mainClass.isEmpty)
       assertEquals(projectTestConfig.project.dependencies, List(projectName))
       assert(hasTag(projectTestConfig, Tag.Test))
-      //assert(compileBloopProject(s"${projectName}-test", bloopDir).status.isOk)
+      // assert(compileBloopProject(s"${projectName}-test", bloopDir).status.isOk)
     }
   }
 
@@ -2964,8 +3168,12 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       assert(platform.isDefined)
       assert(platform.get.isInstanceOf[Platform.Jvm])
       val config = platform.get.asInstanceOf[Platform.Jvm].config
-      if (!scala.util.Properties.isWin) assert(config.home.contains(Paths.get("/opt/jdk11")))
-      assertEquals(Set("-XX:MaxMetaSpaceSize=512m", "-Xms1g", "-Xmx2g"), config.options.toSet)
+      if (!scala.util.Properties.isWin)
+        assert(config.home.contains(Paths.get("/opt/jdk11")))
+      assertEquals(
+        Set("-XX:MaxMetaSpaceSize=512m", "-Xms1g", "-Xmx2g"),
+        config.options.toSet
+      )
     }
   }
 
@@ -3416,7 +3624,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
 
@@ -3429,7 +3640,9 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
       assert(
         resultConfig.project.`scala`.get.options
-          .contains(s"-P:semanticdb:sourceroot:${testProjectDir.getRoot.getCanonicalPath}")
+          .contains(
+            s"-P:semanticdb:sourceroot:${testProjectDir.getRoot.getCanonicalPath}"
+          )
       )
       assert(
         resultConfig.project.`scala`.get.options
@@ -3475,7 +3688,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .build()
 
       val projectName = testProjectDir.getRoot.getName
-      val bloopFile = new File(new File(testProjectDir.getRoot, ".bloop"), projectName + ".json")
+      val bloopFile = new File(
+        new File(testProjectDir.getRoot, ".bloop"),
+        projectName + ".json"
+      )
 
       val resultConfig = readValidBloopConfig(bloopFile)
 
@@ -3580,7 +3796,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     }
   }
 
-  //private def loadBloopState(configDir: File): State = {
+  // private def loadBloopState(configDir: File): State = {
   //  val logger = BloopLogger.default(configDir.toString)
   //  assert(Files.exists(configDir.toPath), "Does not exist: " + configDir)
   //  val configDirectory = AbsolutePath(configDir)
@@ -3588,18 +3804,18 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
   //  val workspaceSettings = WorkspaceSettings.readFromFile(configDirectory, logger)
   //  val build = Build(configDirectory, loadedProjects, workspaceSettings)
   //  State.forTests(build, TestUtil.getCompilerCache(logger), SourceGeneratorCache.empty, logger)
-  //}
+  // }
 
-  //private def compileBloopProject(
+  // private def compileBloopProject(
   //    projectName: String,
   //    bloopDir: File,
   //    verbose: Boolean = false
-  //): State = {
+  // ): State = {
   //  val state0 = loadBloopState(bloopDir)
   //  val state = if (verbose) state0.copy(logger = state0.logger.asVerbose) else state0
   //  val action = Run(Commands.Compile(List(projectName)))
   //  TestUtil.blockingExecute(action, state)
-  //}
+  // }
 
   private def worksWithGivenScalaVersion(version: String): Unit = {
     if (supportsCurrentJavaVersion) {
@@ -3653,9 +3869,15 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
         assert(configFile.project.`scala`.isDefined)
         assertEquals(version, configFile.project.`scala`.get.version)
-        assertEquals("org.scala-lang", configFile.project.`scala`.get.organization)
+        assertEquals(
+          "org.scala-lang",
+          configFile.project.`scala`.get.organization
+        )
         assertEquals("scala-compiler", configFile.project.`scala`.get.name)
-        assert(configFile.project.`scala`.get.jars.exists(_.toString.contains(compilerName)))
+        assert(
+          configFile.project.`scala`.get.jars
+            .exists(_.toString.contains(compilerName))
+        )
 
         assert(hasBothClasspathsEntryName(configFile, libraryName))
         if (isScala3) {
@@ -3669,7 +3891,6 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
         assertEquals(List(projectName), configTestFile.project.dependencies)
         assert(hasTag(configTestFile, Tag.Test))
-        //assert(compileBloopProject(s"${projectName}-test", bloopDir).status.isOk)
         assertAllConfigsMatchJarNames(List(configFile), List(libraryName))
       }
     }

@@ -12,14 +12,20 @@ import org.gradle.api.Project
  *
  * The bloop plugin defines two tasks:
  *
- * 1. `configureBloopInstall`: responsible to set up the environment and force artifact resolution.
- * 2. `bloopInstall`: responsible of generating the bloop config files from the configured data.
+ * 1. `configureBloopInstall`: responsible to set up the environment and
+ * force artifact resolution.
+ * 2. `bloopInstall`: responsible of generating the bloop config files
+ * from the configured data.
  *
- * The second task depends on the first one so that this data dependency is always met.
+ * The second task depends on the first one so that this data dependency is
+ * always met.
  */
 final class BloopPlugin extends Plugin[Project] {
   override def apply(project: Project): Unit = {
-    project.getLogger.info(s"Applying bloop plugin to project ${project.getName}", Seq.empty: _*)
+    project.getLogger.info(
+      s"Applying bloop plugin to project ${project.getName}",
+      Seq.empty: _*
+    )
     project.createExtension[BloopParametersExtension]("bloop", project)
 
     // Creates two tasks: one to configure the plugin and the other one to generate the config files

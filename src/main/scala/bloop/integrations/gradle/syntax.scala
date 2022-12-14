@@ -57,13 +57,15 @@ object syntax {
     }
 
     def androidVariants: Set[BaseVariant with TestedVariant] = {
-      val libVariants = Option(project.getExtensions.findByType(classOf[LibraryExtension]))
-        .map(_.getLibraryVariants.asScala.toSet)
-        .getOrElse(Set.empty)
+      val libVariants =
+        Option(project.getExtensions.findByType(classOf[LibraryExtension]))
+          .map(_.getLibraryVariants.asScala.toSet)
+          .getOrElse(Set.empty)
 
-      val appVariants = Option(project.getExtensions.findByType(classOf[AppExtension]))
-        .map(_.getApplicationVariants.asScala.toSet)
-        .getOrElse(Set.empty)
+      val appVariants =
+        Option(project.getExtensions.findByType(classOf[AppExtension]))
+          .map(_.getApplicationVariants.asScala.toSet)
+          .getOrElse(Set.empty)
       libVariants ++ appVariants
     }
 
@@ -77,8 +79,14 @@ object syntax {
       Option(project.getExtensions.findByType(classOf[JavaApplication]))
     }
 
-    def createExtension[T](name: String, params: Object*)(implicit t: ClassTag[T]): Unit = {
-      project.getExtensions.create(name, t.runtimeClass.asInstanceOf[Class[T]], params: _*)
+    def createExtension[T](name: String, params: Object*)(implicit
+        t: ClassTag[T]
+    ): Unit = {
+      project.getExtensions.create(
+        name,
+        t.runtimeClass.asInstanceOf[Class[T]],
+        params: _*
+      )
       ()
     }
 
@@ -91,7 +99,8 @@ object syntax {
       var finished = false
       while (!finished) {
         if (
-          idx < path1.getNameCount() && idx < path2.getNameCount() && path1.getName(idx) == path2
+          idx < path1.getNameCount() && idx < path2.getNameCount() && path1
+            .getName(idx) == path2
             .getName(idx)
         )
           idx = idx + 1

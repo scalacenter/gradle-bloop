@@ -20,17 +20,21 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Define a Gradle task that generates bloop configuration files from a Gradle project.
+ * Define a Gradle task that generates bloop configuration files from a Gradle
+ * project.
  *
- * This part of the plugin is mainly in charge of handling source sets. Source sets are logical
- * group of sources and resources ([[https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html]]).
+ * This part of the plugin is mainly in charge of handling source sets. Source
+ * sets are logical group of sources and resources
+ * ([[https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html]]).
  *
- * Source sets are the equivalent of sbt configurations (approximately). The default java plugin
- * adds two source sets by default (compile and test) [[https://docs.gradle.org/current/userguide/java_plugin.html]].
+ * Source sets are the equivalent of sbt configurations (approximately). The
+ * default java plugin adds two source sets by default (compile and test)
+ * [[https://docs.gradle.org/current/userguide/java_plugin.html]].
  */
 class BloopInstallTask extends DefaultTask with PluginUtils with TaskLogging {
   override val project: Project = getProject
-  private val extension: BloopParametersExtension = project.getExtension[BloopParametersExtension]
+  private val extension: BloopParametersExtension =
+    project.getExtension[BloopParametersExtension]
 
   @TaskAction
   def run(): Unit = {
@@ -99,7 +103,9 @@ object ScalaJavaInstall {
     info(s"Generated ${targetFile.getAbsolutePath}")
     converter.toBloopConfig(project, sourceSet, targetDir) match {
       case Failure(reason) =>
-        info(s"Skipping ${project.getName}/${sourceSet.getName} because: $reason")
+        info(
+          s"Skipping ${project.getName}/${sourceSet.getName} because: $reason"
+        )
       case Success(bloopConfig) =>
         bloop.config.write(bloopConfig, targetFile.toPath)
     }
@@ -118,7 +124,13 @@ object AndroidInstall {
       generateBloopConfiguration(project, variant, targetDir, converter, info)
       val testVariant = variant.getTestVariant()
       if (testVariant != null)
-        generateBloopConfiguration(project, testVariant, targetDir, converter, info)
+        generateBloopConfiguration(
+          project,
+          testVariant,
+          targetDir,
+          converter,
+          info
+        )
     }
   }
 
@@ -152,7 +164,13 @@ object AndroidInstall {
   ): Unit = {
     val targetFile = targetDir / s"$projectName.json"
     info(s"Generated ${targetFile.getAbsolutePath}")
-    converter.toBloopConfig(projectName, project, variant, sourceProviders, targetDir) match {
+    converter.toBloopConfig(
+      projectName,
+      project,
+      variant,
+      sourceProviders,
+      targetDir
+    ) match {
       case Failure(reason) =>
         info(s"Skipping ${project.getName} because: $reason")
       case Success(bloopConfig) =>
