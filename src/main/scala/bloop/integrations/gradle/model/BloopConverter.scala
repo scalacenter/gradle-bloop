@@ -63,7 +63,8 @@ import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk
 
 /**
  * Define the conversion from Gradle's project model to Bloop's project model.
- * @param parameters Plugin input parameters
+ * @param parameters
+ *   Plugin input parameters
  */
 class BloopConverter(parameters: BloopParameters) {
 
@@ -76,21 +77,28 @@ class BloopConverter(parameters: BloopParameters) {
   ): Try[Config.File] = {
 
     //  build config is a generated source - needs to be added manually
-    val buildConfigLocation = Option(variant.getGenerateBuildConfigProvider.getOrNull())
-      .map(f => {
-        // Using reflection because in Android plugin v4.0 this is a File. In v4.1 this is a DirectoryProvider.
-        val getSourceOutputDirMethod = f.getClass.getMethod("getSourceOutputDir")
-        getSourceOutputDirMethod.invoke(f) match {
-          case f: File => f.toPath
-          case f: DirectoryProperty => f.getAsFile.get.toPath
-          case default =>
-            throw new IllegalStateException(s"Build Config Provider API changed $default")
-        }
-      })
-      .toList
+    val buildConfigLocation =
+      Option(variant.getGenerateBuildConfigProvider.getOrNull())
+        .map(f => {
+          // Using reflection because in Android plugin v4.0 this is a File. In v4.1 this is a DirectoryProvider.
+          val getSourceOutputDirMethod =
+            f.getClass.getMethod("getSourceOutputDir")
+          getSourceOutputDirMethod.invoke(f) match {
+            case f: File => f.toPath
+            case f: DirectoryProperty => f.getAsFile.get.toPath
+            case default =>
+              throw new IllegalStateException(
+                s"Build Config Provider API changed $default"
+              )
+          }
+        })
+        .toList
 
-    val resources = sourceProviders.flatMap(_.getResourcesDirectories.asScala.map(_.toPath).toList)
-    val pureSources = sourceProviders.flatMap(_.getJavaDirectories.asScala.map(_.toPath).toList)
+    val resources = sourceProviders.flatMap(
+      _.getResourcesDirectories.asScala.map(_.toPath).toList
+    )
+    val pureSources =
+      sourceProviders.flatMap(_.getJavaDirectories.asScala.map(_.toPath).toList)
 
     val isTestSourceSet = variant.isInstanceOf[TestVariant]
 
@@ -111,23 +119,33 @@ class BloopConverter(parameters: BloopParameters) {
         project.getRootProject
       )
       // create map of every non-Android projects' sourcesets -> their Gradle projects
-      val allSourceSetsToProjects = getSourceSetProjectMap(project.getRootProject)
+      val allSourceSetsToProjects = getSourceSetProjectMap(
+        project.getRootProject
+      )
 
       // create map of every projects' output jars and classes dir -> source sets
-      val allOutputsToSourceSets = getAndroidOutputsSourceSetMap(allSourceSetsToProjectVariants)
+      val allOutputsToSourceSets = getAndroidOutputsSourceSetMap(
+        allSourceSetsToProjectVariants
+      )
       // create map of every non-Android projects' output jars -> source sets
       val allArchivesToSourceSets =
-        getArchiveSourceSetMap(project.getRootProject, allSourceSetsToProjects.keySet)
+        getArchiveSourceSetMap(
+          project.getRootProject,
+          allSourceSetsToProjects.keySet
+        )
       // create map of every non-Android projects' output dirs -> source sets
-      val allOutputDirsToSourceSets = getOutputDirsToSourceSets(allSourceSetsToProjects)
+      val allOutputDirsToSourceSets = getOutputDirsToSourceSets(
+        allSourceSetsToProjects
+      )
 
       // doesn't appear on classpath but is needed on classpath
       val androidJarLocation = project.androidJar.toList
 
       // get this project's classpath files
-      val compileClassPathFiles = androidJarLocation ::: getAndroidJavaCompile(variant)
-        .map(javaCompile => javaCompile.getClasspath().asScala.toList)
-        .getOrElse(List.empty)
+      val compileClassPathFiles =
+        androidJarLocation ::: getAndroidJavaCompile(variant)
+          .map(javaCompile => javaCompile.getClasspath().asScala.toList)
+          .getOrElse(List.empty)
       val runtimeClassPathFiles = compileClassPathFiles
 
       // project dependencies
@@ -220,7 +238,8 @@ class BloopConverter(parameters: BloopParameters) {
           sbt = None,
           test = testConfig,
           platform = None,
-          resolution = if (modules.isEmpty) None else Some(Config.Resolution(modules)),
+          resolution =
+            if (modules.isEmpty) None else Some(Config.Resolution(modules)),
           tags = if (tags.isEmpty) None else Some(tags),
           sourceGenerators = None
         )
@@ -231,16 +250,21 @@ class BloopConverter(parameters: BloopParameters) {
   /**
    * Converts a project's given source set to a Bloop project
    *
-   * Bloop analysis output will be targetDir/project-name/project[-sourceSet].bin
+   * Bloop analysis output will be
+   * targetDir/project-name/project[-sourceSet].bin
    *
-   * Output classes are generated to projectDir/build/classes/scala/sourceSetName to
-   * be compatible with Gradle.
+   * Output classes are generated to
+   * projectDir/build/classes/scala/sourceSetName to be compatible with Gradle.
    *
-   * NOTE: Java classes will be also put into the above defined directory, not as with Gradle
+   * NOTE: Java classes will be also put into the above defined directory, not
+   * as with Gradle
    *
-   * @param project The Gradle project model
-   * @param sourceSet The source set to convert
-   * @return Bloop configuration
+   * @param project
+   *   The Gradle project model
+   * @param sourceSet
+   *   The source set to convert
+   * @return
+   *   Bloop configuration
    */
   def toBloopConfig(
       project: Project,
@@ -263,7 +287,8 @@ class BloopConverter(parameters: BloopParameters) {
       Failure(new GradleException("Test project has no source so ignore it"))
     } else {
       // get Gradle output dirs
-      val sourceSetSourceOutputDirs = sourceSet.getOutput.getClassesDirs.getFiles.asScala
+      val sourceSetSourceOutputDirs =
+        sourceSet.getOutput.getClassesDirs.getFiles.asScala
       val sourceSetResourcesOutputDir = sourceSet.getOutput.getResourcesDir
 
       // get this project's classpath files
@@ -276,14 +301,21 @@ class BloopConverter(parameters: BloopParameters) {
         .toList
 
       // create map of every projects' sourcesets -> their Gradle projects
-      val allSourceSetsToProjects = getSourceSetProjectMap(project.getRootProject)
+      val allSourceSetsToProjects = getSourceSetProjectMap(
+        project.getRootProject
+      )
 
       // create map of every projects' output jars -> source sets
       val allArchivesToSourceSets =
-        getArchiveSourceSetMap(project.getRootProject, allSourceSetsToProjects.keySet)
+        getArchiveSourceSetMap(
+          project.getRootProject,
+          allSourceSetsToProjects.keySet
+        )
 
       // create map of every projects' output dirs -> source sets
-      val allOutputDirsToSourceSets = getOutputDirsToSourceSets(allSourceSetsToProjects)
+      val allOutputDirsToSourceSets = getOutputDirsToSourceSets(
+        allSourceSetsToProjects
+      )
 
       val projectName = getProjectName(project, sourceSet)
 
@@ -355,9 +387,10 @@ class BloopConverter(parameters: BloopParameters) {
       // retrieve all artifacts to find what Scala library is being used
       val compileClassPathConfiguration =
         project.getConfiguration(sourceSet.getCompileClasspathConfigurationName)
-      val compileArtifacts: List[ResolvedArtifactResult] = getConfigurationArtifacts(
-        compileClassPathConfiguration
-      )
+      val compileArtifacts: List[ResolvedArtifactResult] =
+        getConfigurationArtifacts(
+          compileClassPathConfiguration
+        )
 
       for {
         scalaConfig <- getScalaConfig(
@@ -382,8 +415,10 @@ class BloopConverter(parameters: BloopParameters) {
           java = getJavaConfig(project, sourceSet),
           sbt = None,
           test = getTestConfig(testTask),
-          platform = getPlatform(project, sourceSet, testTask, runtimeClasspath),
-          resolution = if (modules.isEmpty) None else Some(Config.Resolution(modules)),
+          platform =
+            getPlatform(project, sourceSet, testTask, runtimeClasspath),
+          resolution =
+            if (modules.isEmpty) None else Some(Config.Resolution(modules)),
           tags = if (tags.isEmpty) None else Some(tags),
           sourceGenerators = None
         )
@@ -402,7 +437,9 @@ class BloopConverter(parameters: BloopParameters) {
         override def execute(viewConfig: ViewConfiguration): Unit = {
           viewConfig.setLenient(true)
           viewConfig.attributes(new Action[AttributeContainer] {
-            override def execute(attributeContainer: AttributeContainer): Unit = {
+            override def execute(
+                attributeContainer: AttributeContainer
+            ): Unit = {
               attributeContainer.attribute(artifactType, attributeType)
               ()
             }
@@ -445,7 +482,9 @@ class BloopConverter(parameters: BloopParameters) {
       .distinct
   }
 
-  private def getSourceSetProjectMap(rootProject: Project): Map[SourceSet, Project] = {
+  private def getSourceSetProjectMap(
+      rootProject: Project
+  ): Map[SourceSet, Project] = {
     getAllBloopCapableProjects(rootProject)
       .flatMap(p => p.allSourceSets.map(_ -> p))
       .toMap
@@ -474,7 +513,9 @@ class BloopConverter(parameters: BloopParameters) {
       (compileClassPathFiles.flatMap(f => allArchivesToSourceSets.get(f)) ++
         compileClassPathFiles.flatMap(f => allOutputDirsToSourceSets.get(f)) ++
         runtimeClassPathFiles.flatMap(f => allArchivesToSourceSets.get(f)) ++
-        runtimeClassPathFiles.flatMap(f => allOutputDirsToSourceSets.get(f))).distinct
+        runtimeClassPathFiles.flatMap(f =>
+          allOutputDirsToSourceSets.get(f)
+        )).distinct
     sourceSetDependencies
       .map(ss => getProjectName(allSourceSetsToProjects(ss), ss))
       .distinct
@@ -485,12 +526,17 @@ class BloopConverter(parameters: BloopParameters) {
       compileClassPathFiles: List[File],
       runtimeClassPathFiles: List[File],
       allOutputsToSourceSets: Map[File, SourceProvider],
-      allSourceSetsToProjectVariants: Map[SourceProvider, (Project, BaseVariant)],
+      allSourceSetsToProjectVariants: Map[
+        SourceProvider,
+        (Project, BaseVariant)
+      ],
       projectName: String
   ): List[String] = {
     val sourceSetDependencies =
       (compileClassPathFiles.flatMap(f => allOutputsToSourceSets.get(f)) ++
-        runtimeClassPathFiles.flatMap(f => allOutputsToSourceSets.get(f))).distinct
+        runtimeClassPathFiles.flatMap(f =>
+          allOutputsToSourceSets.get(f)
+        )).distinct
     sourceSetDependencies
       .map(ss => {
         val (project, variant) = allSourceSetsToProjectVariants(ss)
@@ -506,7 +552,8 @@ class BloopConverter(parameters: BloopParameters) {
   ): Option[Test] = {
     // get the Test task associated with this sourceSet if there is one
     val testTasks = project.getTasks.asScala.collect {
-      case test: Test => test
+      case test: Test =>
+        test
     }
     testTasks.find(testTask => {
       val testClassesDirs = testTask.getTestClassesDirs.asScala
@@ -519,7 +566,8 @@ class BloopConverter(parameters: BloopParameters) {
     copySpec match {
       case f: DefaultCopySpec =>
         sourcePaths = sourcePaths ++ f.getSourcePaths().asScala
-        sourcePaths = sourcePaths ++ f.getChildren.asScala.flatMap(getSourcePaths)
+        sourcePaths =
+          sourcePaths ++ f.getChildren.asScala.flatMap(getSourcePaths)
     }
     sourcePaths
   }
@@ -530,7 +578,10 @@ class BloopConverter(parameters: BloopParameters) {
   ): Map[File, SourceSet] = {
     val archiveSourceSets = for {
       project <- rootProject.getAllprojects.asScala
-      archiveTask <- project.getTasks().withType(classOf[AbstractArchiveTask]).asScala
+      archiveTask <- project
+        .getTasks()
+        .withType(classOf[AbstractArchiveTask])
+        .asScala
       sourcePathObj <- getSourcePaths(archiveTask.getRootSpec())
       sourcePath <- sourceSets.find(_.getOutput == sourcePathObj)
     } yield archiveTask.getArchivePath -> sourcePath
@@ -540,7 +591,10 @@ class BloopConverter(parameters: BloopParameters) {
   private def getAndroidClassPathItems(
       classPathFiles: List[File],
       allOutputsToSourceSets: Map[File, SourceProvider],
-      allSourceSetsToProjectVariants: Map[SourceProvider, (Project, BaseVariant)],
+      allSourceSetsToProjectVariants: Map[
+        SourceProvider,
+        (Project, BaseVariant)
+      ],
       targetDir: File
   ): List[Path] = {
     classPathFiles
@@ -569,10 +623,15 @@ class BloopConverter(parameters: BloopParameters) {
   }
 
   private def getAndroidOutputsSourceSetMap(
-      allSourceSetsToProjectVariants: Map[SourceProvider, (Project, BaseVariant)]
+      allSourceSetsToProjectVariants: Map[
+        SourceProvider,
+        (Project, BaseVariant)
+      ]
   ): Map[File, SourceProvider] = {
     val apiVersion =
-      SemVer.Version.fromString(com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION)
+      SemVer.Version.fromString(
+        com.android.builder.model.Version.ANDROID_GRADLE_PLUGIN_VERSION
+      )
     val bundleAllClassesClass = Class
       .forName("com.android.build.gradle.internal.feature.BundleAllClasses")
       .asInstanceOf[Class[AndroidVariantTask]]
@@ -590,9 +649,11 @@ class BloopConverter(parameters: BloopParameters) {
             // 3.6.0   BundleAllClasses  getJavacClasses  DirectoryProperty (subclass of Provider<Directory>)
             // 4.2.0   BundleAllClasses  getInputDirs     ConfigurableFileCollection
             val getJavacClassesMethodName =
-              if (apiVersion < SemVer.Version.fromString("4.2.0")) "getJavacClasses"
+              if (apiVersion < SemVer.Version.fromString("4.2.0"))
+                "getJavacClasses"
               else "getInputDirs"
-            val getJavacClassesMethod = task.getClass.getMethod(getJavacClassesMethodName)
+            val getJavacClassesMethod =
+              task.getClass.getMethod(getJavacClassesMethodName)
             val classes = getJavacClassesMethod.invoke(task) match {
               case provider: Provider[_] =>
                 Option(provider.getOrNull)
@@ -600,7 +661,8 @@ class BloopConverter(parameters: BloopParameters) {
                     case directory: Directory => directory.getAsFile
                   })
                   .toSet
-              case fileCollection: ConfigurableFileCollection => fileCollection.getFiles.asScala
+              case fileCollection: ConfigurableFileCollection =>
+                fileCollection.getFiles.asScala
               case _ => Set.empty[File]
             }
 
@@ -609,7 +671,8 @@ class BloopConverter(parameters: BloopParameters) {
             val getOutputJarMethod = task.getClass.getMethod("getOutputJar")
             val outputJar = getOutputJarMethod.invoke(task) match {
               case f: File => Set(f)
-              case f: RegularFileProperty => Option(f.getOrNull).map(_.getAsFile).toSet
+              case f: RegularFileProperty =>
+                Option(f.getOrNull).map(_.getAsFile).toSet
             }
             classes ++ outputJar
           })
@@ -625,14 +688,19 @@ class BloopConverter(parameters: BloopParameters) {
               "com.android.build.gradle.internal.tasks.BundleLibraryClasses"
             else
               "com.android.build.gradle.internal.tasks.BundleLibraryClassesJar"
-          val bundleLibraryClass = Class.forName(bundleLibraryClassName).asInstanceOf[Class[Task]]
-          val bundleLibraryTasks = project.getTasks.withType(bundleLibraryClass).asScala
-          val getVariantNameMethod = bundleLibraryClass.getMethod("getVariantName")
+          val bundleLibraryClass =
+            Class.forName(bundleLibraryClassName).asInstanceOf[Class[Task]]
+          val bundleLibraryTasks =
+            project.getTasks.withType(bundleLibraryClass).asScala
+          val getVariantNameMethod =
+            bundleLibraryClass.getMethod("getVariantName")
           val getOutputMethodName =
             if (apiVersion < SemVer.Version.fromString("4.1.0")) "getJarOutput"
-            else if (apiVersion < SemVer.Version.fromString("4.0.0")) "getOutput"
+            else if (apiVersion < SemVer.Version.fromString("4.0.0"))
+              "getOutput"
             else "getOutput"
-          val getOutputMethod = bundleLibraryClass.getMethod(getOutputMethodName)
+          val getOutputMethod =
+            bundleLibraryClass.getMethod(getOutputMethodName)
           val getClassesMethod = bundleLibraryClass.getMethod("getClasses")
 
           bundleLibraryTasks
@@ -655,25 +723,36 @@ class BloopConverter(parameters: BloopParameters) {
             })
         }
         // R.jar is needed on classpaths - don't substitute it for a project's classes dir
-        val outputDirsAndJars = (libs ++ apps).filterNot(_.getName().equalsIgnoreCase("R.jar"))
+        val outputDirsAndJars =
+          (libs ++ apps).filterNot(_.getName().equalsIgnoreCase("R.jar"))
         outputDirsAndJars.map(_ -> sourceProvider)
     }.toMap
   }
 
-  private def getJavaCompileTask(project: Project, sourceSet: SourceSet): JavaCompile = {
+  private def getJavaCompileTask(
+      project: Project,
+      sourceSet: SourceSet
+  ): JavaCompile = {
     val javaCompileTaskName = sourceSet.getCompileTaskName("java")
     project.getTask[JavaCompile](javaCompileTaskName)
   }
 
-  private def getJavaCompileOptions(project: Project, sourceSet: SourceSet): CompileOptions = {
+  private def getJavaCompileOptions(
+      project: Project,
+      sourceSet: SourceSet
+  ): CompileOptions = {
     getJavaCompileTask(project, sourceSet).getOptions
   }
 
-  private def getAndroidJavaCompile(variant: BaseVariant): Option[JavaCompile] = {
+  private def getAndroidJavaCompile(
+      variant: BaseVariant
+  ): Option[JavaCompile] = {
     Option(variant.getJavaCompileProvider().getOrNull)
   }
 
-  private def getAndroidJavaConfig(variant: BaseVariant): Option[Config.Java] = {
+  private def getAndroidJavaConfig(
+      variant: BaseVariant
+  ): Option[Config.Java] = {
     getAndroidJavaCompile(variant).flatMap(javaCompile => {
       val options = javaCompile.getOptions
       // bug in DefaultJavaCompileSpec handling Android bootstrapClasspath causes crash so set to null
@@ -704,11 +783,17 @@ class BloopConverter(parameters: BloopParameters) {
       })
       .orElse(
         project.javaApplicationExt
-          .flatMap(f => Option(f.getApplicationDefaultJvmArgs).map(_.asScala.toList))
+          .flatMap(f =>
+            Option(f.getApplicationDefaultJvmArgs).map(_.asScala.toList)
+          )
       )
       .getOrElse(
-        Option(forkOptions.getMemoryInitialSize).map(mem => s"-Xms$mem").toList ++
-          Option(forkOptions.getMemoryMaximumSize).map(mem => s"-Xmx$mem").toList ++
+        Option(forkOptions.getMemoryInitialSize)
+          .map(mem => s"-Xms$mem")
+          .toList ++
+          Option(forkOptions.getMemoryMaximumSize)
+            .map(mem => s"-Xmx$mem")
+            .toList ++
           forkOptions.getJvmArgs.asScala.toList
       )
 
@@ -724,7 +809,13 @@ class BloopConverter(parameters: BloopParameters) {
     })
     Some(
       Platform
-        .Jvm(JvmConfig(jdkPath, projectJvmOptions), mainClass, None, Some(runtimeClasspath), None)
+        .Jvm(
+          JvmConfig(jdkPath, projectJvmOptions),
+          mainClass,
+          None,
+          Some(runtimeClasspath),
+          None
+        )
     )
   }
 
@@ -740,7 +831,10 @@ class BloopConverter(parameters: BloopParameters) {
   // "c-Foo" and "d-Foo"
   // not
   // "a-b-c-Foo" and "a-b-d-Foo"
-  private def createUniqueProjectName(project: Project, suffix: Option[String]): String = {
+  private def createUniqueProjectName(
+      project: Project,
+      suffix: Option[String]
+  ): String = {
 
     def getFQName(project: Project): String = {
       // gradle getPath is inconsistent - it returns ":" for rootProject and doesn't preface non-root project with rootProject.name
@@ -781,10 +875,13 @@ class BloopConverter(parameters: BloopParameters) {
       else {
         val fqNameParts = getReversedFQNameParts(project)
         val fqNamesParts =
-          projectsWithSameName.map(getReversedFQNameParts).filter(!_.sameElements(fqNameParts))
+          projectsWithSameName
+            .map(getReversedFQNameParts)
+            .filter(!_.sameElements(fqNameParts))
         getUniqueSections(1, fqNameParts, fqNamesParts).reverse.mkString("-")
       }
-    val fullName = suffix.map(s => s"${uniqueProjectName}-$s").getOrElse(uniqueProjectName)
+    val fullName =
+      suffix.map(s => s"${uniqueProjectName}-$s").getOrElse(uniqueProjectName)
     if (suffix.nonEmpty) {
       // has the suffix caused a clash - no nice way to resolve so just apply a numbered suffix
       var usedName = fullName
@@ -799,7 +896,8 @@ class BloopConverter(parameters: BloopParameters) {
 
   def getProjectName(project: Project, sourceSet: SourceSet): String = {
     val suffix =
-      if (sourceSet.getName == SourceSet.MAIN_SOURCE_SET_NAME) None else Some(sourceSet.getName)
+      if (sourceSet.getName == SourceSet.MAIN_SOURCE_SET_NAME) None
+      else Some(sourceSet.getName)
     createUniqueProjectName(project, suffix)
   }
 
@@ -816,10 +914,18 @@ class BloopConverter(parameters: BloopParameters) {
   private def getClassesDir(targetDir: File, projectName: String): Path =
     (targetDir / projectName / "build" / "classes").toPath
 
-  private def getAndroidClassesDir(targetDir: File, project: Project, variant: BaseVariant): Path =
+  private def getAndroidClassesDir(
+      targetDir: File,
+      project: Project,
+      variant: BaseVariant
+  ): Path =
     getClassesDir(targetDir, getAndroidProjectName(project, variant))
 
-  private def getClassesDir(targetDir: File, project: Project, sourceSet: SourceSet): Path =
+  private def getClassesDir(
+      targetDir: File,
+      project: Project,
+      sourceSet: SourceSet
+  ): Path =
     getClassesDir(targetDir, getProjectName(project, sourceSet))
 
   private def getSources(sourceSet: SourceSet): List[Path] =
@@ -864,21 +970,36 @@ class BloopConverter(parameters: BloopParameters) {
     artifactResult.getId match {
       case mcai: ModuleComponentArtifactIdentifier =>
         val javadocArtifact =
-          if (parameters.includeJavadoc) Seq(classOf[JavadocArtifact]) else Seq.empty
+          if (parameters.includeJavadoc) Seq(classOf[JavadocArtifact])
+          else Seq.empty
         val sourcesArtifact =
-          if (parameters.includeSources) Seq(classOf[SourcesArtifact]) else Seq.empty
+          if (parameters.includeSources) Seq(classOf[SourcesArtifact])
+          else Seq.empty
 
         val resolutionResult = project.getDependencies
           .createArtifactResolutionQuery()
           .forComponents(mcai.getComponentIdentifier)
-          .withArtifacts(classOf[JvmLibrary], javadocArtifact ++ sourcesArtifact: _*)
+          .withArtifacts(
+            classOf[JvmLibrary],
+            javadocArtifact ++ sourcesArtifact: _*
+          )
           .execute()
 
         val name = mcai.getComponentIdentifier.getModule
         val resolvedArtifacts = resolutionResult.getResolvedComponents.asScala
         val configArtifacts =
-          getArtifacts(resolvedArtifacts, name, classOf[SourcesArtifact], "sources") ++
-            getArtifacts(resolvedArtifacts, name, classOf[JavadocArtifact], "javadoc") +
+          getArtifacts(
+            resolvedArtifacts,
+            name,
+            classOf[SourcesArtifact],
+            "sources"
+          ) ++
+            getArtifacts(
+              resolvedArtifacts,
+              name,
+              classOf[JavadocArtifact],
+              "javadoc"
+            ) +
             Config.Artifact(
               name = name,
               classifier = None,
@@ -907,19 +1028,25 @@ class BloopConverter(parameters: BloopParameters) {
     def isJavaOnly: Boolean = {
       !sourceSet.exists(ss => {
         val allSourceFiles = ss.getAllSource.getFiles.asScala.toList
-        allSourceFiles.filter(f => f.exists && f.isFile).exists(_.getName.endsWith(".scala"))
+        allSourceFiles
+          .filter(f => f.exists && f.isFile)
+          .exists(_.getName.endsWith(".scala"))
       })
     }
 
     // Finding the compiler group and version from the standard Scala library added as dependency
     // library precedence is: user-specified, Scala3, Scala2 (as multiple library version may exist)
     val stdLibNames =
-      parameters.stdLibName.map(List.apply(_)).getOrElse(List("scala-library", "scala3-library_3"))
+      parameters.stdLibName
+        .map(List.apply(_))
+        .getOrElse(List("scala-library", "scala3-library_3"))
     val artifactIds = artifacts
       .map(_.getId)
       .collect({ case mcai: ModuleComponentArtifactIdentifier => mcai })
     val stdLibIds =
-      artifactIds.filter(f => stdLibNames.contains(f.getComponentIdentifier.getModule))
+      artifactIds.filter(f =>
+        stdLibNames.contains(f.getComponentIdentifier.getModule)
+      )
     stdLibIds.headOption match {
       case Some(stdLibArtifact) =>
         val scalaCompileTask = sourceSet
@@ -930,7 +1057,8 @@ class BloopConverter(parameters: BloopParameters) {
           })
           .getOrElse({
             // no sourceset - probably Android plugin - look for any ScalaCompile task
-            val scalaCompileTasks = project.getTasks.withType(classOf[ScalaCompile])
+            val scalaCompileTasks =
+              project.getTasks.withType(classOf[ScalaCompile])
             scalaCompileTasks.asScala.headOption
           })
 
@@ -938,12 +1066,16 @@ class BloopConverter(parameters: BloopParameters) {
           case Some(compileTask) =>
             val scalaVersion = stdLibArtifact.getComponentIdentifier.getVersion
             val scalaOrg = stdLibArtifact.getComponentIdentifier.getGroup
-            val scalaJars = compileTask.getScalaClasspath.asScala.map(_.toPath).toList
+            val scalaJars =
+              compileTask.getScalaClasspath.asScala.map(_.toPath).toList
             val opts = compileTask.getScalaCompileOptions
             val options = optionList(opts) ++ getPluginsAsOptions(compileTask)
-            val compilerName = parameters.compilerName.getOrElse("scala-compiler")
+            val compilerName =
+              parameters.compilerName.getOrElse("scala-compiler")
             val noJavaFiles =
-              sourceSet.exists(sourceSet => sourceSet.getJava.getSourceDirectories.isEmpty)
+              sourceSet.exists(sourceSet =>
+                sourceSet.getJava.getSourceDirectories.isEmpty
+              )
             val compileOrder = if (noJavaFiles) Mixed else JavaThenScala
             val setup = CompileSetup.empty.copy(order = compileOrder)
 
@@ -966,7 +1098,11 @@ class BloopConverter(parameters: BloopParameters) {
             if (isJavaOnly) Success(None)
             else {
               // This is a heavy error on Gradle's side, but we will only report it in Scala projects
-              Failure(new GradleException(s"No ScalaCompile task in ${project.getName}"))
+              Failure(
+                new GradleException(
+                  s"No ScalaCompile task in ${project.getName}"
+                )
+              )
             }
         }
       case None if isJavaOnly => Success(None)
@@ -976,7 +1112,9 @@ class BloopConverter(parameters: BloopParameters) {
         val artifactNames =
           if (artifacts.isEmpty) ""
           else
-            s" Found artifacts:\n${artifacts.map(a => s"${a.getId.getDisplayName} ${a.getFile}").mkString("\n")}"
+            s" Found artifacts:\n${artifacts
+                .map(a => s"${a.getId.getDisplayName} ${a.getFile}")
+                .mkString("\n")}"
         Failure(
           new GradleException(
             s"Expected ${parameters.stdLibName} library in classpath of $target that defines Scala sources.$artifactNames"
@@ -1001,7 +1139,10 @@ class BloopConverter(parameters: BloopParameters) {
     }
   }
 
-  private def getJavaConfig(project: Project, sourceSet: SourceSet): Option[Config.Java] = {
+  private def getJavaConfig(
+      project: Project,
+      sourceSet: SourceSet
+  ): Option[Config.Java] = {
     val javaCompile = getJavaCompileTask(project, sourceSet)
     val options = javaCompile.getOptions
     getJavaConfig(javaCompile, options)
@@ -1016,7 +1157,9 @@ class BloopConverter(parameters: BloopParameters) {
     specs.setSourceCompatibility(javaCompile.getSourceCompatibility)
     specs.setTargetCompatibility(javaCompile.getTargetCompatibility)
     if (options.getAnnotationProcessorPath != null)
-      specs.setAnnotationProcessorPath(options.getAnnotationProcessorPath.asScala.toList.asJava);
+      specs.setAnnotationProcessorPath(
+        options.getAnnotationProcessorPath.asScala.toList.asJava
+      );
 
     val builder = new JavaCompilerArgumentsBuilder(specs)
       .includeMainOptions(true)
@@ -1066,7 +1209,9 @@ class BloopConverter(parameters: BloopParameters) {
       ifEnabled(options.isOptimize)("-optimize"),
       ifEnabled(options.getDebugLevel == "verbose")("-verbose"),
       ifEnabled(options.getDebugLevel == "debug")("-Ydebug"),
-      Option(options.getEncoding).map(encoding => s"-encoding$argumentSpaceSeparator$encoding"),
+      Option(options.getEncoding).map(encoding =>
+        s"-encoding$argumentSpaceSeparator$encoding"
+      ),
       Option(options.getDebugLevel).map(level => s"-g:$level")
     ).flatten.toSet
 
@@ -1082,18 +1227,25 @@ class BloopConverter(parameters: BloopParameters) {
       else {
         // scalac options are passed back as Strings but under the hood can be GStringImpls which aren't Strings - so cope with that
         val optionList =
-          opts.asScala.toList.asInstanceOf[List[Object]].filter(_ != null).map(_.toString)
+          opts.asScala.toList
+            .asInstanceOf[List[Object]]
+            .filter(_ != null)
+            .map(_.toString)
         fuseOptionsWithArguments(optionList).toSet
       }
     }
 
     // Sort compiler flags to get a deterministic order when extracting the project
-    splitFlags(baseOptions.union(loggingPhases).union(additionalOptions).toList.sorted)
+    splitFlags(
+      baseOptions.union(loggingPhases).union(additionalOptions).toList.sorted
+    )
   }
 
   private final val argumentSpaceSeparator = '\u0000'
   private final val argumentSpace = argumentSpaceSeparator.toString
-  private def fuseOptionsWithArguments(scalacOptions: List[String]): List[String] = {
+  private def fuseOptionsWithArguments(
+      scalacOptions: List[String]
+  ): List[String] = {
     scalacOptions match {
       case scalacOption :: rest =>
         val (args, remaining) = nextArgsAndRemaining(rest)
@@ -1103,7 +1255,9 @@ class BloopConverter(parameters: BloopParameters) {
     }
   }
 
-  private def nextArgsAndRemaining(scalacOptions: List[String]): (List[String], List[String]) = {
+  private def nextArgsAndRemaining(
+      scalacOptions: List[String]
+  ): (List[String], List[String]) = {
     scalacOptions match {
       case arg :: rest if !arg.startsWith("-") =>
         val (args, flags) = nextArgsAndRemaining(rest)
@@ -1117,7 +1271,9 @@ class BloopConverter(parameters: BloopParameters) {
     values.flatMap(value => value.split(argumentSpaceSeparator))
   }
 
-  private def getAllBloopCapableProjects(rootProject: Project): List[Project] = {
+  private def getAllBloopCapableProjects(
+      rootProject: Project
+  ): List[Project] = {
     rootProject.getAllprojects().asScala.filter(PluginUtils.canRunBloop).toList
   }
 }
