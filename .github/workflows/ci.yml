@@ -47,4 +47,4 @@ jobs:
           java-version: '11'
 
       - name: Check Formatting
-        run: sbt "scalafmtCheckAll; scalafmtSbtCheck; scalafixCheck --check test:scalafix --check"
+        run: sbt "scalafmtCheckAll; scalafmtSbtCheck; scalafix --check test:scalafix --check"
