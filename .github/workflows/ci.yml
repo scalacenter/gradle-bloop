@@ -12,8 +12,9 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        java: [ '8', '17' ]
+        java: [ '11', '17' ]
         os: [ 'ubuntu-latest' ]
 
     steps:
@@ -47,4 +48,4 @@ jobs:
           java-version: '11'
 
       - name: Check Formatting
-        run: sbt "scalafmtCheckAll; scalafmtSbtCheck; scalafixCheck --check test:scalafix --check"
+        run: sbt "scalafmtCheckAll; scalafmtSbtCheck; scalafix --check; test:scalafix --check"

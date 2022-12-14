@@ -3,7 +3,8 @@ ThisBuild / resolvers ++= List(
     "Gradle releases",
     "https://repo.gradle.org/gradle/libs-releases-local/"
   ),
-  MavenRepository("Android plugin", "https://maven.google.com/")
+  MavenRepository("Android plugin", "https://maven.google.com/"),
+  MavenRepository("Android dependencies", "https://repo.spring.io/plugins-release/")
 )
 
 def GitHubDev(handle: String, fullName: String, email: String) =
