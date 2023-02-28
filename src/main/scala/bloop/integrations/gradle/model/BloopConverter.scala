@@ -47,6 +47,8 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
+import org.gradle.api.plugins.JavaApplication
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
@@ -789,7 +791,7 @@ class BloopConverter(parameters: BloopParameters) {
 
     val mainClass =
       if (testTask.isEmpty)
-        project.javaApplicationExt.flatMap(f => Option(f.getMainClassName))
+        project.javaApplicationExt.flatMap(getJavaMainClass)
       else
         None
 
@@ -1108,6 +1110,17 @@ class BloopConverter(parameters: BloopParameters) {
         )
     }
   }
+
+  private def getJavaMainClass(app: JavaApplication): Option[String] =
+    try Option(app.getMainClassName())
+    catch {
+      case _: NoSuchMethodError =>
+        // Gradle 8.0.1 removed `mainClassName` in favor of `mainClass`
+        // https://docs.gradle.org/current/javadoc/org/gradle/api/plugins/JavaApplication.html#getMainClass--
+        val mainClassNameHandle =
+          classOf[JavaApplication].getDeclaredMethod("getMainClass")
+        Option(mainClassNameHandle.invoke(app).asInstanceOf[Property[String]].getOrNull())
+    }
 
   private def getPluginsAsOptions(scalaCompile: ScalaCompile): List[String] = {
     // Gradle 6.4 has scalaCompilerPlugins option

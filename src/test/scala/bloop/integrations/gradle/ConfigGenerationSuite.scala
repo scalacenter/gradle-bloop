@@ -46,10 +46,18 @@ class ConfigGenerationSuite_Android_Scala_plugin extends ConfigGenerationSuite {
 }
  */
 
+class ConfigGenerationSuite_8 extends ConfigGenerationSuite {
+  protected val gradleVersion: String = "8.0.1"
+  protected val supportsCurrentJavaVersion: Boolean = true
+  // TODO: Enable Android support for Gradle versions higher than 8.0.1 in the future
+  override protected val supportsAndroid: Boolean = false
+}
+
 abstract class ConfigGenerationSuite extends BaseConfigSuite {
   protected val gradleVersion: String
   protected val supportsCurrentJavaVersion: Boolean
-  private def supportsAndroid: Boolean = gradleVersion >= "6.1.1"
+  protected def supportsAndroid: Boolean = gradleVersion >= "6.1.1"
+
   // private def supportsAndroidScalaPlugin: Boolean = gradleVersion == "6.6"
   private def supportsScala3: Boolean = gradleVersion >= "7.3"
   private def canConsumeTestRuntime: Boolean = gradleVersion < "7.0"
@@ -221,7 +229,6 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .withGradleVersion(gradleVersion)
         .withProjectDir(testProjectDir.getRoot)
         .withPluginClasspath(getClasspath)
-        .forwardOutput()
         .withArguments("bloopInstall", "-Si")
         .build()
 
@@ -1470,7 +1477,6 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         .withProjectDir(buildDirMain)
         .withPluginClasspath(getClasspath)
         .withArguments("bloopInstall", "-Si")
-        .forwardOutput()
         .build()
 
       val projectName = testProjectDir.getRoot.getName
