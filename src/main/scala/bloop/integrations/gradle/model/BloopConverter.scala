@@ -541,15 +541,19 @@ class BloopConverter(parameters: BloopParameters) {
       .filter(_ != projectName)
   }
 
+  private def tasksWithType[T <: Task](project: Project, clazz: Class[T]): Set[T] = {
+    // Gradle gives concurrentmodification exceptions if multiple threads resolve the tasks at once which happens on multi-project builds
+    project.synchronized {
+      project.getTasks.withType(clazz).asScala.toSet
+    }
+  }
+
   private def getTestTask(
       project: Project,
       sourceSetOutputFiles: collection.Set[File]
   ): Option[Test] = {
     // get the Test task associated with this sourceSet if there is one
-    val testTasks = project.getTasks.asScala.collect {
-      case test: Test =>
-        test
-    }
+    val testTasks = tasksWithType(project, classOf[Test])
     testTasks.find(testTask => {
       val testClassesDirs = testTask.getTestClassesDirs.asScala
       testClassesDirs.exists(sourceSetOutputFiles.contains)
@@ -572,10 +576,7 @@ class BloopConverter(parameters: BloopParameters) {
   ): Map[File, SourceSet] = {
     val archiveSourceSets = for {
       project <- rootProject.getAllprojects.asScala
-      archiveTask <- project
-        .getTasks()
-        .withType(classOf[AbstractArchiveTask])
-        .asScala
+      archiveTask <- tasksWithType(project, classOf[AbstractArchiveTask])
       sourcePathObj <- getSourcePaths(archiveTask.getRootSpec())
       sourcePath <- sourceSets.find(_.getOutput == sourcePathObj)
     } yield archiveTask.getArchivePath -> sourcePath
@@ -631,9 +632,7 @@ class BloopConverter(parameters: BloopParameters) {
       .asInstanceOf[Class[AndroidVariantTask]]
     allSourceSetsToProjectVariants.flatMap {
       case (sourceProvider, (project, variant)) =>
-        val bundleAppTasks = project.getTasks
-          .withType(bundleAllClassesClass)
-          .asScala
+        val bundleAppTasks = tasksWithType(project, bundleAllClassesClass)
           .filter(_.getVariantName == variant.getName)
 
         val apps = bundleAppTasks
@@ -684,8 +683,7 @@ class BloopConverter(parameters: BloopParameters) {
               "com.android.build.gradle.internal.tasks.BundleLibraryClassesJar"
           val bundleLibraryClass =
             Class.forName(bundleLibraryClassName).asInstanceOf[Class[Task]]
-          val bundleLibraryTasks =
-            project.getTasks.withType(bundleLibraryClass).asScala
+          val bundleLibraryTasks = tasksWithType(project, bundleLibraryClass)
           val getVariantNameMethod =
             bundleLibraryClass.getMethod("getVariantName")
           val getOutputMethodName =
