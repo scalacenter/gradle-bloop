@@ -457,7 +457,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
           |  mavenCentral()
           |}
           |dependencies {
-          |  implementation 'org.scala-lang:scala-library:2.13.10'
+          |  implementation 'org.scala-lang:scala-library:2.13.11'
           |}
       """.stripMargin
     )
