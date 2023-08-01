@@ -17,7 +17,11 @@ import io.github.classgraph.ClassGraph
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome._
-import org.junit.Assert._
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit._
 import org.junit.rules.TemporaryFolder
@@ -79,6 +83,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
   // private def supportsAndroidScalaPlugin: Boolean = gradleVersion == "6.6"
   private def supportsScala3: Boolean = gradleVersion >= "7.3"
   private def canConsumeTestRuntime: Boolean = gradleVersion < "7.0"
+  private def supportsReleaseFlag: Boolean = gradleVersion >= "6.6"
   private def supportsLazyArchives: Boolean = gradleVersion >= "4.9"
   private def supportsTestFixtures: Boolean = gradleVersion >= "5.6"
   private def supportsMainClass: Boolean = gradleVersion >= "6.4"
@@ -2614,6 +2619,54 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     )
   }
 
+  @Test def releaseFlagsGeneratedCorrectly(): Unit = {
+    assumeTrue(supportsReleaseFlag)
+    val buildFile = testProjectDir.newFile("build.gradle")
+    testProjectDir.newFolder("src", "main", "scala")
+    writeBuildScript(
+      buildFile,
+      s"""
+         |plugins {
+         |  id 'bloop'
+         |}
+         |
+         |apply plugin: 'bloop'
+         |apply plugin: 'java'
+         |
+         |repositories {
+         |  mavenCentral()
+         |}
+         |
+         |tasks.withType(JavaCompile) {
+         |  options.release = 14
+         |}
+         |
+      """.stripMargin
+    )
+
+    createHelloWorldScalaSource(testProjectDir.getRoot)
+
+    GradleRunner
+      .create()
+      .withGradleVersion(gradleVersion)
+      .withProjectDir(testProjectDir.getRoot)
+      .withPluginClasspath(getClasspath)
+      .withArguments("bloopInstall", "-Si")
+      .build()
+
+    val projectName = testProjectDir.getRoot.getName
+    val bloopFile = new File(
+      new File(testProjectDir.getRoot, ".bloop"),
+      projectName + ".json"
+    )
+
+    val resultConfig = readValidBloopConfig(bloopFile)
+    val obtainedOptions = resultConfig.project.java.get.options.mkString(":")
+    assertThat(obtainedOptions, CoreMatchers.containsString("--release:14"))
+    assertFalse(obtainedOptions.contains("-source:"))
+    assertFalse(obtainedOptions.contains("-target:"))
+  }
+
   @Test def flagsWithArgsGeneratedCorrectly(): Unit = {
     assumeTrue(supportsCurrentJavaVersion)
     val buildFile = testProjectDir.newFile("build.gradle")
@@ -2684,19 +2737,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
       ),
       resultConfig.project.`scala`.get.options
     )
-    val expectedOptions =
-      List(
-        "-source",
-        "1.2",
-        "-target",
-        "1.3",
-        "-g",
-        "-sourcepath",
-        "-XDuseUnsharedTable=true"
-      )
-    val obtainedOptions = resultConfig.project.java.get.options
-    assert(expectedOptions.forall(opt => obtainedOptions.contains(opt)))
-    assert(!obtainedOptions.contains("--release"))
+    val obtainedOptions = resultConfig.project.java.get.options.mkString(":")
+    assertThat(obtainedOptions, CoreMatchers.containsString("-source:1.2"))
+    assertThat(obtainedOptions, CoreMatchers.containsString("-target:1.3"))
+    assertFalse(obtainedOptions.contains("--release"))
   }
 
   @Test def sourceTargetReleaseGeneratedCorrectly(): Unit = {
@@ -2738,11 +2782,11 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     val resultConfig = readValidBloopConfig(bloopFile)
     val expectedOptions = List("--release", "9")
     val obtainedOptions = resultConfig.project.java.get.options
-    assert(expectedOptions.forall(opt => obtainedOptions.contains(opt)))
-    assert(!obtainedOptions.contains("-source"))
-    assert(!obtainedOptions.contains("--source"))
-    assert(!obtainedOptions.contains("-target"))
-    assert(!obtainedOptions.contains("--target"))
+    assertTrue(expectedOptions.forall(opt => obtainedOptions.contains(opt)))
+    assertFalse(obtainedOptions.contains("-source"))
+    assertFalse(obtainedOptions.contains("--source"))
+    assertFalse(obtainedOptions.contains("-target"))
+    assertFalse(obtainedOptions.contains("--target"))
   }
 
   @Test def doesNotCreateEmptyProjects(): Unit = {

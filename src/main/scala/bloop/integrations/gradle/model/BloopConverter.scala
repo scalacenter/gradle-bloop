@@ -1109,6 +1109,16 @@ class BloopConverter(parameters: BloopParameters) {
     }
   }
 
+  private def getJavaReleaseFlag(javacOptions: CompileOptions): Option[java.lang.Integer] =
+    try {
+      val releaseHandle = classOf[CompileOptions].getDeclaredMethod("getRelease")
+      Option(
+        releaseHandle.invoke(javacOptions).asInstanceOf[Property[java.lang.Integer]].getOrNull()
+      )
+    } catch {
+      case _: NoSuchMethodException => None
+    }
+
   private def getJavaMainClass(app: JavaApplication): Option[String] =
     try Option(app.getMainClassName())
     catch {
@@ -1151,8 +1161,6 @@ class BloopConverter(parameters: BloopParameters) {
   ): Option[Config.Java] = {
     val specs = new DefaultJavaCompileSpec()
     specs.setCompileOptions(options)
-    specs.setSourceCompatibility(javaCompile.getSourceCompatibility)
-    specs.setTargetCompatibility(javaCompile.getTargetCompatibility)
     if (options.getAnnotationProcessorPath != null)
       specs.setAnnotationProcessorPath(
         options.getAnnotationProcessorPath.asScala.toList.asJava
@@ -1167,20 +1175,24 @@ class BloopConverter(parameters: BloopParameters) {
     var args = builder.build().asScala.toList
 
     if (!args.contains("--release")) {
-      if (
-        !args.contains("-source") &&
-        !args.contains("--source") &&
-        specs.getSourceCompatibility != null
-      ) {
-        args = "-source" :: specs.getSourceCompatibility :: args
-      }
+      getJavaReleaseFlag(options) match {
+        case Some(releaseFlag) => args = "--release" :: releaseFlag.toString :: args
+        case None =>
+          if (
+            !args.contains("-source") &&
+            !args.contains("--source") &&
+            javaCompile.getSourceCompatibility != null
+          ) {
+            args = "-source" :: javaCompile.getSourceCompatibility :: args
+          }
 
-      if (
-        !args.contains("-target") &&
-        !args.contains("--target") &&
-        specs.getTargetCompatibility != null
-      ) {
-        args = "-target" :: specs.getTargetCompatibility :: args
+          if (
+            !args.contains("-target") &&
+            !args.contains("--target") &&
+            javaCompile.getTargetCompatibility != null
+          ) {
+            args = "-target" :: javaCompile.getTargetCompatibility :: args
+          }
       }
     }
 
