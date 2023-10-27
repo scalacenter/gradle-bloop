@@ -62,6 +62,7 @@ import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.language.java.artifact.JavadocArtifact
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
 /**
  * Define the conversion from Gradle's project model to Bloop's project model.
@@ -1032,13 +1033,18 @@ class BloopConverter(parameters: BloopParameters) {
       parameters.stdLibName
         .map(List.apply(_))
         .getOrElse(List("scala-library", "scala3-library_3"))
+
     val artifactIds = artifacts
-      .map(_.getId)
-      .collect({ case mcai: ModuleComponentArtifactIdentifier => mcai })
-    val stdLibIds =
-      artifactIds.filter(f => stdLibNames.contains(f.getComponentIdentifier.getModule))
+      .map(_.getId.getComponentIdentifier())
+      .collect {
+        case mid: ModuleComponentIdentifier => mid
+      }
+
+    val stdLibIds = artifactIds
+      .filter(mid => stdLibNames.contains(mid.getModule()))
+
     stdLibIds.headOption match {
-      case Some(stdLibArtifact) =>
+      case Some(stdLibArtifactId) =>
         val scalaCompileTask = sourceSet
           .map(sourceSet => {
             // task name is defined on the source set
@@ -1054,8 +1060,8 @@ class BloopConverter(parameters: BloopParameters) {
 
         scalaCompileTask match {
           case Some(compileTask) =>
-            val scalaVersion = stdLibArtifact.getComponentIdentifier.getVersion
-            val scalaOrg = stdLibArtifact.getComponentIdentifier.getGroup
+            val scalaVersion = stdLibArtifactId.getVersion
+            val scalaOrg = stdLibArtifactId.getGroup
             val scalaJars =
               compileTask.getScalaClasspath.asScala.map(_.toPath).toList
             val opts = compileTask.getScalaCompileOptions
@@ -1105,7 +1111,7 @@ class BloopConverter(parameters: BloopParameters) {
                 .mkString("\n")}"
         Failure(
           new GradleException(
-            s"Expected ${parameters.stdLibName} library in classpath of $target that defines Scala sources.$artifactNames"
+            s"Missing Scala standard library (${stdLibIds}) in classpath of Scala sourceset $target.$artifactNames"
           )
         )
     }
