@@ -3828,6 +3828,73 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     assert(hasTestFramework(configAIntegTest, TestFramework.JUnit))
   }
 
+  @Test def correctlyRemovesStaleConfiguration(): Unit = {
+    def runBloopInstall() =
+      GradleRunner
+        .create()
+        .withGradleVersion(gradleVersion)
+        .withProjectDir(testProjectDir.getRoot)
+        .withPluginClasspath(getClasspath)
+        .withArguments("bloopInstall", "-Si")
+        .build()
+
+    val buildFile = testProjectDir.newFile("build.gradle")
+    testProjectDir.newFolder("src", "main", "scala")
+    testProjectDir.newFolder("src", "test", "scala")
+
+    writeBuildScript(
+      buildFile,
+      s"""
+          |plugins {
+          |  id 'bloop'
+          |}
+          |
+          |apply plugin: 'scala'
+          |apply plugin: 'bloop'
+          |
+          |repositories {
+          |  mavenCentral()
+          |}
+          |
+          |dependencies {
+          |  implementation 'org.scala-lang:scala-library:2.12.8'
+          |}
+      """.stripMargin
+    )
+
+    createHelloWorldScalaSource(testProjectDir.getRoot)
+
+    runBloopInstall()
+
+    val bloopDir = new File(testProjectDir.getRoot, ".bloop")
+    def projectFile(projectName: String) = new File(bloopDir, s"${projectName}.json")
+    def projectTestFile(projectName: String) = new File(bloopDir, s"${projectName}-test.json")
+
+    val initProjectName = testProjectDir.getRoot.getName
+    val initProjectFile = projectFile(initProjectName)
+    val initProjectTestFile = projectTestFile(initProjectName)
+
+    readValidBloopConfig(initProjectFile)
+    readValidBloopConfig(initProjectTestFile)
+
+    val newProjectName = "new-project-name"
+    val buildSettings = testProjectDir.newFile("settings.gradle")
+    writeBuildScript(
+      buildSettings,
+      s"""
+        |rootProject.name = '$newProjectName'
+      """.stripMargin
+    )
+
+    runBloopInstall()
+
+    readValidBloopConfig(projectFile(newProjectName))
+    readValidBloopConfig(projectTestFile(newProjectName))
+
+    assertTrue(s"Stale project configuration should be removed but $initProjectFile exists.", !initProjectFile.exists())
+    assertTrue(s"Stale project configuration should be removed but $initProjectTestFile exists.", !initProjectTestFile.exists())
+  }
+
   // private def loadBloopState(configDir: File): State = {
   //  val logger = BloopLogger.default(configDir.toString)
   //  assert(Files.exists(configDir.toPath), "Does not exist: " + configDir)

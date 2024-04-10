@@ -1,6 +1,7 @@
 package bloop.integrations.gradle.tasks
 
 import java.io.File
+import java.io.IOException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 
@@ -61,11 +62,29 @@ class BloopInstallTask extends DefaultTask with PluginUtils with TaskLogging {
       }
     }
 
-    if (hasJavaScalaPlugin)
+    if (hasJavaScalaPlugin) {
+      removeOldConfigs(targetDir)
       ScalaJavaInstall.install(project, targetDir, converter, info)
+    }
 
-    if (hasAndroidPlugin)
+    if (hasAndroidPlugin) {
+      removeOldConfigs(targetDir)
       AndroidInstall.install(project, targetDir, converter, info)
+    }
+  }
+
+  private def removeOldConfigs(targetDir: File) = {
+    try {
+      targetDir.listFiles().foreach {
+        case file
+            if file.isFile() && file.getName().endsWith(".json") && file
+              .getName() != "bloop.settings.json" =>
+          Files.delete(file.toPath())
+      }
+    } catch {
+      case _: IOException =>
+        warn("Failed to remove stale projects configuration.")
+    }
   }
 }
 

@@ -15,4 +15,8 @@ trait TaskLogging {
   def info(msg: String): Unit = {
     getLogger.info(msg, Seq.empty: _*)
   }
+
+  def warn(msg: String): Unit = {
+    getLogger.warn(msg, Seq.empty: _*)
+  }
 }
