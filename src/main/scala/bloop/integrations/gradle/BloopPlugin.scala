@@ -41,15 +41,32 @@ final class BloopPlugin extends Plugin[Project] {
     // This configuration is not meant to be consumed by other projects
     bloopConfig.setCanBeConsumed(false)
 
-    val incompatibleConfigurations = Set[String](
-      "incrementalScalaAnalysisElements",
-      "incrementalScalaAnalysisFormain",
-      "incrementalScalaAnalysisFortest",
-      "zinc"
-    )
+    extendCompatibleConfigurationAfterEvaluate(project, bloopConfig)
 
-    project.afterEvaluate { (project: Project) =>
-      project.getConfigurations.forEach { (config: Configuration) =>
+    // Creates two tasks: one to configure the plugin and the other one to generate the config files
+    val configureBloopInstall =
+      project.createTask[ConfigureBloopInstallTask]("configureBloopInstall")
+    val bloopInstall = project.createTask[BloopInstallTask]("bloopInstall")
+    configureBloopInstall.installTask = Some(bloopInstall)
+    bloopInstall.dependsOn(configureBloopInstall)
+    ()
+  }
+
+  private[this] val incompatibleConfigurations = Set[String](
+    "incrementalScalaAnalysisElements",
+    "incrementalScalaAnalysisFormain",
+    "incrementalScalaAnalysisFortest",
+    "incrementalScalaAnalysisForintegtest",
+    "zinc"
+  )
+
+  def extendCompatibleConfigurationAfterEvaluate(
+      project: Project,
+      bloopConfig: Configuration
+  ): Unit = {
+    // Use consumer instead of Scala closure because of Scala 2.11 compat
+    val extendConfigurationIfCompatible = new java.util.function.Consumer[Configuration] {
+      def accept(config: Configuration): Unit = {
         if (
           config != bloopConfig && config.isCanBeResolved &&
           !incompatibleConfigurations.contains(config.getName())
@@ -59,12 +76,14 @@ final class BloopPlugin extends Plugin[Project] {
       }
     }
 
-    // Creates two tasks: one to configure the plugin and the other one to generate the config files
-    val configureBloopInstall =
-      project.createTask[ConfigureBloopInstallTask]("configureBloopInstall")
-    val bloopInstall = project.createTask[BloopInstallTask]("bloopInstall")
-    configureBloopInstall.installTask = Some(bloopInstall)
-    bloopInstall.dependsOn(configureBloopInstall)
-    ()
+    // Important to do this after evaluation so Gradle can add all the necessary project configuration before we extend them
+    project.afterEvaluate(
+      // Use Action instead of Scala closure because of Scala 2.11 compat
+      new org.gradle.api.Action[Project] {
+        def execute(project: Project): Unit = {
+          project.getConfigurations.forEach(extendConfigurationIfCompatible)
+        }
+      }
+    )
   }
 }
