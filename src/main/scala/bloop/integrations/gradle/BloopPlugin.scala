@@ -28,6 +28,37 @@ final class BloopPlugin extends Plugin[Project] {
     )
     project.createExtension[BloopParametersExtension]("bloop", project)
 
+    val bloopConfig = project.getConfigurations().create("bloopConfig")
+    bloopConfig.setDescription(
+      "A configuration for Bloop to be able to export artifacts in all other configurations."
+    )
+
+    // Make this configuration not visbile in dependencyInsight reports
+    bloopConfig.setVisible(false)
+    // Allow this configuration to be resolved
+    bloopConfig.setCanBeResolved(true)
+    // This configuration is not meant to be consumed by other projects
+    bloopConfig.setCanBeConsumed(false)
+
+    val incompatibleConfigurations = Set[String](
+      "incrementalScalaAnalysisElements",
+      "incrementalScalaAnalysisFormain",
+      "incrementalScalaAnalysisFortest",
+      "zinc"
+    )
+
+    project.afterEvaluate { (project: Project) =>
+      project.getConfigurations.forEach { config =>
+        if (
+          config != bloopConfig && config.isCanBeResolved &&
+          !incompatibleConfigurations.contains(config.getName())
+        ) {
+          println(s"Extending ${config.getName()} from BloopConfig")
+          bloopConfig.extendsFrom(config)
+        }
+      }
+    }
+
     // Creates two tasks: one to configure the plugin and the other one to generate the config files
     val configureBloopInstall =
       project.createTask[ConfigureBloopInstallTask]("configureBloopInstall")

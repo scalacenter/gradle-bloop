@@ -191,13 +191,23 @@ class BloopConverter(parameters: BloopParameters) {
         targetDir
       )
 
+      val bloopConfig = project.getConfiguration("bloopConfig")
+      val allArtifacts = getConfigurationArtifacts(bloopConfig)
+
       // get all configurations dependencies - these go into the resolutions as the user can create their own config dependencies (e.g. compiler plugin jar)
       // some configs aren't allowed to be resolved - hence the catch
       // this can bring too many artifacts into the resolution section (e.g. junit on main projects) but there's no way to know which artifact is required by which sourceset
       // filter out internal scala plugin configurations
-      val allArtifacts = project.getConfigurations.asScala
-        .filter(_.isCanBeResolved)
-        .flatMap(getConfigurationArtifacts)
+
+      //     val allArtifacts2 = project.getConfigurations.asScala
+      //       .filter(_.isCanBeResolved)
+      //       .flatMap(getConfigurationArtifacts)
+
+      //   System.out.println(s"""
+      //   |All artifacts (new): $allArtifacts
+      //   |All artifacts (old): $allArtifacts2
+      //   """.stripMargin)
+
       val additionalModules = allArtifacts
         .filterNot(f => allOutputsToSourceSets.contains(f.getFile))
         .map(artifactToConfigModule(_, project))
@@ -355,17 +365,8 @@ class BloopConverter(parameters: BloopParameters) {
       // some configs aren't allowed to be resolved - hence the catch
       // this can bring too many artifacts into the resolution section (e.g. junit on main projects) but there's no way to know which artifact is required by which sourceset
       // filter out internal scala plugin configurations
-      val modules = project.getConfigurations.asScala
-        .filter(_.isCanBeResolved)
-        .filter(c =>
-          !List(
-            "incrementalScalaAnalysisElements",
-            "incrementalScalaAnalysisFormain",
-            "incrementalScalaAnalysisFortest",
-            "zinc"
-          ).contains(c.getName)
-        )
-        .flatMap(getConfigurationArtifacts)
+      val bloopConfig = project.getConfiguration("bloopConfig")
+      val modules = getConfigurationArtifacts(bloopConfig)
         .filter(f =>
           !allArchivesToSourceSets.contains(f.getFile) &&
             !allOutputDirsToSourceSets.contains(f.getFile)
