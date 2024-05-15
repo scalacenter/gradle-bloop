@@ -56,7 +56,8 @@ final class BloopPlugin extends Plugin[Project] {
     "incrementalScalaAnalysisElements",
     "incrementalScalaAnalysisFormain",
     "incrementalScalaAnalysisFortest",
-    "incrementalScalaAnalysisForintegtest",
+    "incrementalScalaAnalysisForintegTest",
+    "incrementalScalaAnalysisForjmh",
     "zinc"
   )
 
