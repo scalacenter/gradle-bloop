@@ -53,7 +53,6 @@ final class BloopPlugin extends Plugin[Project] {
           config != bloopConfig && config.isCanBeResolved &&
           !incompatibleConfigurations.contains(config.getName())
         ) {
-          println(s"Extending ${config.getName()} from BloopConfig")
           bloopConfig.extendsFrom(config)
         }
       }
