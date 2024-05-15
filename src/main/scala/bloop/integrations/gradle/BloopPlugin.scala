@@ -6,6 +6,7 @@ import bloop.integrations.gradle.tasks.ConfigureBloopInstallTask
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 /**
  * Main entry point of the gradle bloop plugin.
@@ -48,7 +49,7 @@ final class BloopPlugin extends Plugin[Project] {
     )
 
     project.afterEvaluate { (project: Project) =>
-      project.getConfigurations.forEach { config =>
+      project.getConfigurations.forEach { (config: Configuration) =>
         if (
           config != bloopConfig && config.isCanBeResolved &&
           !incompatibleConfigurations.contains(config.getName())
