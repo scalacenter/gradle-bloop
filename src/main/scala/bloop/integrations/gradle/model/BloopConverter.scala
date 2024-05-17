@@ -191,22 +191,12 @@ class BloopConverter(parameters: BloopParameters) {
         targetDir
       )
 
-      val bloopConfig = project.getConfiguration("bloopConfig")
-      val allArtifacts = getConfigurationArtifacts(bloopConfig)
-
-      // get all configurations dependencies - these go into the resolutions as the user can create their own config dependencies (e.g. compiler plugin jar)
-      // some configs aren't allowed to be resolved - hence the catch
-      // this can bring too many artifacts into the resolution section (e.g. junit on main projects) but there's no way to know which artifact is required by which sourceset
-      // filter out internal scala plugin configurations
-
-      //     val allArtifacts2 = project.getConfigurations.asScala
-      //       .filter(_.isCanBeResolved)
-      //       .flatMap(getConfigurationArtifacts)
-
-      //   System.out.println(s"""
-      //   |All artifacts (new): $allArtifacts
-      //   |All artifacts (old): $allArtifacts2
-      //   """.stripMargin)
+      // We obtain all the artifacts in this configuration, which has been
+      // configured to extend all valid resolvable configurations to obtain the
+      // artifact jars present in all of the variants in an Android project
+      val bloopAndroidConfig = project.getConfiguration("bloopAndroidConfig")
+      assert(bloopAndroidConfig != null, "Missing bloopAndroidConfig!")
+      val allArtifacts = getConfigurationArtifacts(bloopAndroidConfig)
 
       val additionalModules = allArtifacts
         .filterNot(f => allOutputsToSourceSets.contains(f.getFile))
@@ -361,11 +351,12 @@ class BloopConverter(parameters: BloopParameters) {
         targetDir
       )
 
-      // get all configurations dependencies - these go into the resolutions as the user can create their own config dependencies (e.g. compiler plugin jar)
-      // some configs aren't allowed to be resolved - hence the catch
-      // this can bring too many artifacts into the resolution section (e.g. junit on main projects) but there's no way to know which artifact is required by which sourceset
-      // filter out internal scala plugin configurations
-      val bloopConfig = project.getConfiguration("bloopConfig")
+      // Each source set has a bloop config name that extends the most important
+      // source set configurations to properly retrieve all relevant artifact jars
+      val bloopConfigName = generateBloopConfigName(sourceSet)
+      val bloopConfig = project.getConfiguration(bloopConfigName)
+      assert(bloopConfig != null, s"Missing $bloopConfigName configuration in project!")
+
       val modules = getConfigurationArtifacts(bloopConfig)
         .filter(f =>
           !allArchivesToSourceSets.contains(f.getFile) &&

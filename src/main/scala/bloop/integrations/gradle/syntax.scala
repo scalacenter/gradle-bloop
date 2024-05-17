@@ -123,4 +123,12 @@ object syntax {
   implicit class FileExtension(file: File) {
     def /(child: String): File = new File(file, child)
   }
+
+  def capitalize(x: String): String = Option(x) match {
+    case Some(s) if s.nonEmpty => s.head.toUpper + s.tail
+    case _ => x
+  }
+
+  def generateBloopConfigName(sourceSet: SourceSet): String =
+    s"bloop${capitalize(sourceSet.getName())}Config"
 }

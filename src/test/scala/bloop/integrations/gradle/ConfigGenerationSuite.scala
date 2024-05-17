@@ -3632,7 +3632,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         |
         |configurations {
         |    scalaCompilerPlugin
-        |    bloopConfig.extendsFrom(scalaCompilerPlugin)
+        |}
+        |
+        |bloop {
+        |    extendUserConfigurations = [configurations.scalaCompilerPlugin.name]
         |}
         |
         |dependencies {
