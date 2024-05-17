@@ -3,15 +3,15 @@ package bloop.integrations.gradle
 import java.io.File
 import java.util.ArrayList
 
+import scala.collection.JavaConverters._
+
 import bloop.integrations.gradle.syntax._
 
 import org.gradle.api.Project
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
-
-import scala.collection.JavaConverters._
-import org.gradle.api.provider.ListProperty
 
 /**
  * Project extension to configure Bloop.

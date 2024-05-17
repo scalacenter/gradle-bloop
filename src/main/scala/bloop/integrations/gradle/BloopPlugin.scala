@@ -1,15 +1,16 @@
 package bloop.integrations.gradle
 
+import scala.collection.JavaConverters._
+
 import bloop.integrations.gradle.syntax._
-import bloop.integrations.gradle.tasks.PluginUtils
 import bloop.integrations.gradle.tasks.BloopInstallTask
 import bloop.integrations.gradle.tasks.ConfigureBloopInstallTask
-import scala.collection.JavaConverters._
+import bloop.integrations.gradle.tasks.PluginUtils
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.SourceSet
 
 /**
  * Main entry point of the gradle bloop plugin.
