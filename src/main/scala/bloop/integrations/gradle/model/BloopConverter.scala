@@ -33,7 +33,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ArtifactView.ViewConfiguration
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.Attribute
@@ -51,6 +53,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.compile.CompileOptions
@@ -63,9 +66,6 @@ import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.language.java.artifact.JavadocArtifact
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.specs.Spec
 
 /**
  * Define the conversion from Gradle's project model to Bloop's project model.
