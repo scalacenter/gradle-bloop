@@ -63,6 +63,8 @@ import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.language.java.artifact.JavadocArtifact
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 /**
  * Define the conversion from Gradle's project model to Bloop's project model.
@@ -424,18 +426,28 @@ class BloopConverter(parameters: BloopParameters) {
     // get only jar artifacts
     val artifactType = Attribute.of("artifactType", classOf[String])
     val attributeType = "jar"
+
     configuration.getIncoming
       .artifactView(new Action[ViewConfiguration] {
         override def execute(viewConfig: ViewConfiguration): Unit = {
-          viewConfig.setLenient(true)
-          viewConfig.attributes(new Action[AttributeContainer] {
-            override def execute(
-                attributeContainer: AttributeContainer
-            ): Unit = {
-              attributeContainer.attribute(artifactType, attributeType)
-              ()
+          viewConfig
+            .lenient(true)
+            .componentFilter { (id: ComponentIdentifier) =>
+              // Filter out project dependencies as we're not interested in them
+              // Furthermore, if there are any configuration transforms Gradle
+              // must check that the artifact jars are present, and if we depend
+              // on project dependencies then it'll fail because project
+              // dependencies don't have existing jars at the time of resolution
+              !(id.isInstanceOf[ProjectComponentIdentifier])
             }
-          })
+            .attributes(new Action[AttributeContainer] {
+              override def execute(
+                  attributeContainer: AttributeContainer
+              ): Unit = {
+                attributeContainer.attribute(artifactType, attributeType)
+                ()
+              }
+            })
           ()
         }
       })
