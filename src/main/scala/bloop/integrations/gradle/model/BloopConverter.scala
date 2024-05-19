@@ -65,6 +65,7 @@ import org.gradle.language.java.artifact.JavadocArtifact
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.specs.Spec
 
 /**
  * Define the conversion from Gradle's project model to Bloop's project model.
@@ -432,14 +433,16 @@ class BloopConverter(parameters: BloopParameters) {
         override def execute(viewConfig: ViewConfiguration): Unit = {
           viewConfig
             .lenient(true)
-            .componentFilter { (id: ComponentIdentifier) =>
-              // Filter out project dependencies as we're not interested in them
-              // Furthermore, if there are any configuration transforms Gradle
-              // must check that the artifact jars are present, and if we depend
-              // on project dependencies then it'll fail because project
-              // dependencies don't have existing jars at the time of resolution
-              !(id.isInstanceOf[ProjectComponentIdentifier])
-            }
+            .componentFilter(new Spec[ComponentIdentifier] {
+              def isSatisfiedBy(id: ComponentIdentifier): Boolean = {
+                // Filter out project dependencies as we're not interested in them
+                // Furthermore, if there are any configuration transforms Gradle
+                // must check that the artifact jars are present, and if we depend
+                // on project dependencies then it'll fail because project
+                // dependencies don't have existing jars at the time of resolution
+                !(id.isInstanceOf[ProjectComponentIdentifier])
+              }
+            })
             .attributes(new Action[AttributeContainer] {
               override def execute(
                   attributeContainer: AttributeContainer
