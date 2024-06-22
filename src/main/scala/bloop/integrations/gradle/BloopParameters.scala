@@ -1,10 +1,14 @@
 package bloop.integrations.gradle
 
 import java.io.File
+import java.util.ArrayList
+
+import scala.collection.JavaConverters._
 
 import bloop.integrations.gradle.syntax._
 
 import org.gradle.api.Project
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -21,6 +25,7 @@ import org.gradle.api.tasks.Optional
  *   stdLibName = "scala-library" // or "scala3-library_3"
  *   includeSources = true
  *   includeJavaDoc = false
+ *   extendUserConfigurations = ["myCustomMainConfig"]
  * }
  * }}}
  */
@@ -58,6 +63,13 @@ case class BloopParametersExtension(project: Project) {
   @Input @Optional def getIncludeJavadoc: Property[java.lang.Boolean] =
     includeJavadoc_
 
+  private val extendUserConfigurations_ : ListProperty[String] =
+    project.getObjects().listProperty(classOf[String])
+  extendUserConfigurations_.set(new ArrayList[String]())
+
+  @Input @Optional def getExtendUserConfigurations: ListProperty[String] =
+    extendUserConfigurations_
+
   def createParameters: BloopParameters = {
     val defaultTargetDir =
       project.getRootProject.workspacePath.resolve(".bloop").toFile
@@ -66,7 +78,8 @@ case class BloopParametersExtension(project: Project) {
       Option(compilerName_.getOrNull),
       Option(stdLibName_.getOrNull),
       includeSources_.get,
-      includeJavadoc_.get
+      includeJavadoc_.get,
+      extendUserConfigurations_.get.asScala.toList
     )
   }
 }
@@ -76,5 +89,6 @@ case class BloopParameters(
     compilerName: Option[String],
     stdLibName: Option[String],
     includeSources: Boolean,
-    includeJavadoc: Boolean
+    includeJavadoc: Boolean,
+    extendUserConfigurations: List[String]
 )
