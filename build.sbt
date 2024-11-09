@@ -36,7 +36,7 @@ lazy val V = new {
   val bloopConfig = "1.5.5"
   val classgraph = "4.8.177"
   val gradle = "5.0"
-  val groovy = "3.0.22"
+  val groovy = "3.0.23"
   val junitInterface = "0.13.3"
 
   val scala211 = "2.11.12"
