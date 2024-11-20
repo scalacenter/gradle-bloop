@@ -1,7 +1,7 @@
 ThisBuild / resolvers ++= List(
   MavenRepository(
     "Gradle releases",
-    "https://repo.gradle.org/gradle/libs-releases-local/"
+    "https://repo.gradle.org/gradle/libs-releases/"
   ),
   MavenRepository("Android plugin", "https://maven.google.com/"),
   MavenRepository("Android dependencies", "https://repo.spring.io/plugins-release/")
@@ -35,7 +35,7 @@ lazy val V = new {
   val androidGradle = "4.2.2"
   val bloopConfig = "1.5.5"
   val classgraph = "4.8.179"
-  val gradle = "5.0"
+  val gradle = "8.11"
   val groovy = "3.0.23"
   val junitInterface = "0.13.3"
 
@@ -59,8 +59,8 @@ lazy val plugin = (project in file("."))
     libraryDependencies ++= List(
       "dev.gradleplugins" % "gradle-api" % V.gradle % Provided,
       "dev.gradleplugins" % "gradle-test-kit" % V.gradle % Provided,
-      "org.gradle" % "gradle-core" % V.gradle % Provided,
-      "org.gradle" % "gradle-tooling-api" % V.gradle % Provided,
+      //   "org.gradle" % "gradle-core" % V.gradle % Provided,
+      //   "org.gradle" % "gradle-tooling-api" % V.gradle % Provided,
       "org.codehaus.groovy" % "groovy" % V.groovy % Provided,
       "com.android.tools.build" % "gradle" % V.androidGradle % Provided,
       "ch.epfl.scala" %% "bloop-config" % V.bloopConfig,
