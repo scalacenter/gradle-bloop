@@ -3634,6 +3634,10 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
         |    scalaCompilerPlugin
         |}
         |
+        |bloop {
+        |    extendUserConfigurations = [configurations.scalaCompilerPlugin.name]
+        |}
+        |
         |dependencies {
         |  implementation 'org.scala-lang:scala-library:2.12.8'
         |  scalaCompilerPlugin "org.scalameta:semanticdb-scalac_2.12.8:4.1.9"
