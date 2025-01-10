@@ -32,7 +32,7 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / semanticdbEnabled := true
 
 lazy val V = new {
-  val androidGradle = "8.7.3"
+  val androidGradle = "8.8.0"
   val bloopConfig = "1.5.5"
   val classgraph = "4.8.179"
   val gradle = "5.0"
