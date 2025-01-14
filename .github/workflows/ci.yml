@@ -29,6 +29,8 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
 
+      - uses: sbt/setup-sbt@v1
+
       - name: Run tests
         run: sbt +test
 
@@ -46,6 +48,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+
+      - uses: sbt/setup-sbt@v1
 
       - name: Check Formatting
         run: sbt "scalafmtCheckAll; scalafmtSbtCheck; scalafix --check; test:scalafix --check"
