@@ -43,7 +43,7 @@ class ConfigGenerationSuite_7_5 extends ConfigGenerationSuite {
 
 // maximum supported version
 class ConfigGenerationSuite_8_0 extends ConfigGenerationSuite {
-  protected def gradleVersion: String = "8.0.1"
+  protected def gradleVersion: String = "8.11"
 }
 /*
 // needed for scala android plugin testing - Disabled - see #worksWithAndroidScalaPlugin
