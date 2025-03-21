@@ -17,6 +17,7 @@ import io.github.classgraph.ClassGraph
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome._
+import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertEquals
@@ -42,8 +43,8 @@ class ConfigGenerationSuite_7_5 extends ConfigGenerationSuite {
 }
 
 // maximum supported version
-class ConfigGenerationSuite_8_0 extends ConfigGenerationSuite {
-  protected def gradleVersion: String = "8.0.1"
+class ConfigGenerationSuite_8_13 extends ConfigGenerationSuite {
+  protected def gradleVersion: String = "8.13"
 }
 /*
 // needed for scala android plugin testing - Disabled - see #worksWithAndroidScalaPlugin
@@ -54,40 +55,48 @@ class ConfigGenerationSuite_Android_Scala_plugin extends ConfigGenerationSuite {
 
 object ConfigGenerationSuite {
   // gradle version -> maximum supported Java version
-  val versionList = List(
-    "2.0" -> "8",
-    "4.3" -> "9",
-    "4.7" -> "10",
-    "5.0" -> "11",
-    "5.4" -> "12",
-    "6.0" -> "13",
-    "6.3" -> "14",
-    "6.7" -> "15",
-    "7.0" -> "16",
-    "7.3" -> "17",
-    "7.5" -> "18",
-    "7.6" -> "19",
-    "999" -> "20"
+  val versionList: List[(GradleVersion, String)] = List(
+    GradleVersion.version("2.0") -> "8",
+    GradleVersion.version("4.3") -> "9",
+    GradleVersion.version("4.7") -> "10",
+    GradleVersion.version("5.0") -> "11",
+    GradleVersion.version("5.4") -> "12",
+    GradleVersion.version("6.0") -> "13",
+    GradleVersion.version("6.3") -> "14",
+    GradleVersion.version("6.7") -> "15",
+    GradleVersion.version("7.0") -> "16",
+    GradleVersion.version("7.3") -> "17",
+    GradleVersion.version("7.5") -> "18",
+    GradleVersion.version("7.6") -> "19",
+    GradleVersion.version("8.3") -> "20",
+    GradleVersion.version("8.5") -> "21",
+    GradleVersion.version("8.8") -> "22",
+    GradleVersion.version("8.10") -> "23",
+    GradleVersion.version("99.0") -> "24"
   )
 }
 abstract class ConfigGenerationSuite extends BaseConfigSuite {
   protected def gradleVersion: String
+  private def gradleSemVer: GradleVersion = GradleVersion.version(gradleVersion)
   protected def supportsCurrentJavaVersion: Boolean =
     ConfigGenerationSuite.versionList
-      .filter(f => f._1 > gradleVersion)
-      .headOption
-      .map(f => !Properties.isJavaAtLeast(f._2))
-      .getOrElse(true)
+      .find(f => f._1.compareTo(gradleSemVer) > 0)
+      .forall(f => !Properties.isJavaAtLeast(f._2))
 
-  private def supportsAndroid: Boolean = gradleVersion >= "6.1.1"
-  // private def supportsAndroidScalaPlugin: Boolean = gradleVersion == "6.6"
-  private def supportsScala3: Boolean = gradleVersion >= "7.3"
-  private def canConsumeTestRuntime: Boolean = gradleVersion < "7.0"
-  private def supportsReleaseFlag: Boolean = gradleVersion >= "6.6"
-  private def supportsLazyArchives: Boolean = gradleVersion >= "4.9"
-  private def supportsTestFixtures: Boolean = gradleVersion >= "5.6"
-  private def supportsMainClass: Boolean = gradleVersion >= "6.4"
-  private def supportsScalaCompilerPlugins: Boolean = gradleVersion >= "6.4"
+  private def supportsAndroid: Boolean = gradleSemVer.compareTo(GradleVersion.version("6.1.1")) >= 0
+  // private def supportsAndroidScalaPlugin: Boolean = gradleVersion == GradleVersion.version("6.6")
+  private def supportsScala3: Boolean = gradleSemVer.compareTo(GradleVersion.version("7.3")) >= 0
+  private def canConsumeTestRuntime: Boolean =
+    gradleSemVer.compareTo(GradleVersion.version("7.0")) < 0
+  private def supportsReleaseFlag: Boolean =
+    gradleSemVer.compareTo(GradleVersion.version("6.6")) >= 0
+  private def supportsLazyArchives: Boolean =
+    gradleSemVer.compareTo(GradleVersion.version("4.9")) >= 0
+  private def supportsTestFixtures: Boolean =
+    gradleSemVer.compareTo(GradleVersion.version("5.6")) >= 0
+  private def supportsMainClass: Boolean = gradleSemVer.compareTo(GradleVersion.version("6.4")) >= 0
+  private def supportsScalaCompilerPlugins: Boolean =
+    gradleSemVer.compareTo(GradleVersion.version("6.4")) >= 0
 
   // folder to put test build scripts and java/scala source files
   private val testProjectDir_ = new TemporaryFolder()
