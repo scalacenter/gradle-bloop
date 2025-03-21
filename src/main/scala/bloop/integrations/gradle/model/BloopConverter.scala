@@ -1213,30 +1213,32 @@ class BloopConverter(parameters: BloopParameters) {
     Some(Config.Java(args))
   }
 
-  private def ifEnabled[T](option: Boolean)(value: T): Option[T] =
-    if (option) Some(value) else None
+  private def ifEnabled(option: Boolean)(value: String): List[String] =
+    if (option) List(value) else List.empty
 
   private def optionList(options: ScalaCompileOptions): List[String] = {
     // based on ZincScalaCompilerArgumentsGenerator
-    val baseOptions: Set[String] = Seq(
+    val baseOptions: List[String] = List(
       ifEnabled(options.isDeprecation)("-deprecation"),
       ifEnabled(options.isUnchecked)("-unchecked"),
       ifEnabled(options.isOptimize)("-optimize"),
-      ifEnabled(options.getDebugLevel == "verbose")("-verbose"),
-      ifEnabled(options.getDebugLevel == "debug")("-Ydebug"),
-      Option(options.getEncoding).map(encoding => s"-encoding$argumentSpaceSeparator$encoding"),
-      Option(options.getDebugLevel).map(level => s"-g:$level")
-    ).flatten.toSet
+      ifEnabled(options.getLoggingLevel == "verbose")("-verbose"),
+      ifEnabled(options.getLoggingLevel == "debug")("-Ydebug"),
+      Option(options.getEncoding)
+        .map(encoding => s"-encoding$argumentSpaceSeparator$encoding")
+        .toList,
+      Option(options.getDebugLevel).map(level => s"-g:$level").toList
+    ).flatten
 
-    val loggingPhases: Set[String] =
+    val loggingPhases: List[String] =
       Option(options.getLoggingPhases)
-        .map(_.asScala.toSet)
-        .getOrElse(Set.empty)
+        .map(_.asScala.toList)
+        .getOrElse(List.empty)
         .map(phase => s"-Ylog:$phase")
 
-    val additionalOptions: Set[String] = {
+    val additionalOptions: List[String] = {
       val opts = options.getAdditionalParameters
-      if (opts == null) Set.empty
+      if (opts == null) List.empty
       else {
         // scalac options are passed back as Strings but under the hood can be GStringImpls which aren't Strings - so cope with that
         val optionList =
@@ -1244,14 +1246,16 @@ class BloopConverter(parameters: BloopParameters) {
             .asInstanceOf[List[Object]]
             .filter(_ != null)
             .map(_.toString)
-        fuseOptionsWithArguments(optionList).toSet
+        fuseOptionsWithArguments(optionList)
       }
     }
+    val allAdditionalOptions = additionalOptions.toSet
+    val allStructuredOptions = baseOptions ++ loggingPhases
+    // let additional options override structured options
+    val allOptions =
+      allStructuredOptions.filterNot(allAdditionalOptions.contains) ++ additionalOptions
 
-    // Sort compiler flags to get a deterministic order when extracting the project
-    splitFlags(
-      baseOptions.union(loggingPhases).union(additionalOptions).toList.sorted
-    )
+    splitFlags(allOptions)
   }
 
   private final val argumentSpaceSeparator = '\u0000'
