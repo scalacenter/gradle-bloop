@@ -1068,7 +1068,7 @@ class BloopConverter(parameters: BloopParameters) {
               parameters.compilerName.getOrElse("scala-compiler")
             val noJavaFiles =
               sourceSet.exists(sourceSet => sourceSet.getJava.getSourceDirectories.isEmpty)
-            val compileOrder = if (noJavaFiles) Mixed else JavaThenScala
+            val compileOrder = if (noJavaFiles) JavaThenScala else Mixed
             val setup = CompileSetup.empty.copy(order = compileOrder)
 
             // Use the compile setup and analysis out defaults, Gradle doesn't expose its customization
