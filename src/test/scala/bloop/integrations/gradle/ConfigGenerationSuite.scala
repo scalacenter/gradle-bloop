@@ -3319,7 +3319,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     )
 
     val setupA = getSetup(buildDirA)
-    assertEquals(JavaThenScala, setupA.order)
+    assertEquals(Mixed, setupA.order)
 
     val buildDirB = testProjectDir.newFolder("b")
     val buildFileB = new File(buildDirB, "build.gradle")
@@ -3351,7 +3351,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     )
 
     val setupB = getSetup(buildDirB)
-    assertEquals(Mixed, setupB.order)
+    assertEquals(JavaThenScala, setupB.order)
   }
 
   @Test def maintainsClassPathOrder(): Unit = {
