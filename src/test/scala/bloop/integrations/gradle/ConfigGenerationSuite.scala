@@ -2614,7 +2614,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     val resultConfig = readValidBloopConfig(bloopFile)
 
     assertEquals(
-      List("-deprecation", "-encoding", "utf8", "-unchecked"),
+      List("-deprecation", "-unchecked", "-encoding", "utf8"),
       resultConfig.project.`scala`.get.options
     )
   }
@@ -2696,11 +2696,22 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
          |
          |tasks.withType(ScalaCompile) {
          |  scalaCompileOptions.encoding = "utf8"
+         |  scalaCompileOptions.deprecation = true
+         |  scalaCompileOptions.unchecked = true
+         |  scalaCompileOptions.loggingLevel = "verbose"
+         |  scalaCompileOptions.debugLevel = "someLevel"
+         |  scalaCompileOptions.loggingPhases = [ "phase1", "phase2" ]
          |	scalaCompileOptions.additionalParameters = [
-         |    "-deprecation",
+         |    "-deprecation",   // duplicate
          |    "-Yjar-compression-level", "0",
          |    "-Ybackend-parallelism", "8",
-         |    "-unchecked"]
+         |    "-Wconf:1",
+         |    "-Wconf:2",
+         |    "-Wconf:3",
+         |    "-Wconf:10",
+         |    "-Wconf:20",
+         |    "-Wconf:30"
+         |  ]
          |}
          |
       """.stripMargin
@@ -2726,14 +2737,24 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
 
     assertEquals(
       List(
-        "-Ybackend-parallelism",
-        "8",
-        "-Yjar-compression-level",
-        "0",
-        "-deprecation",
+        "-unchecked",
+        "-verbose",
         "-encoding",
         "utf8",
-        "-unchecked"
+        "-g:someLevel",
+        "-Ylog:phase1",
+        "-Ylog:phase2",
+        "-deprecation",
+        "-Yjar-compression-level",
+        "0",
+        "-Ybackend-parallelism",
+        "8",
+        "-Wconf:1",
+        "-Wconf:2",
+        "-Wconf:3",
+        "-Wconf:10",
+        "-Wconf:20",
+        "-Wconf:30"
       ),
       resultConfig.project.`scala`.get.options
     )
