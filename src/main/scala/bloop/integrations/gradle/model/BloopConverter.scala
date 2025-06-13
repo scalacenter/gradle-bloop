@@ -33,7 +33,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ArtifactView.ViewConfiguration
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.Attribute
@@ -51,6 +53,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.compile.CompileOptions
@@ -191,13 +194,13 @@ class BloopConverter(parameters: BloopParameters) {
         targetDir
       )
 
-      // get all configurations dependencies - these go into the resolutions as the user can create their own config dependencies (e.g. compiler plugin jar)
-      // some configs aren't allowed to be resolved - hence the catch
-      // this can bring too many artifacts into the resolution section (e.g. junit on main projects) but there's no way to know which artifact is required by which sourceset
-      // filter out internal scala plugin configurations
-      val allArtifacts = project.getConfigurations.asScala
-        .filter(_.isCanBeResolved)
-        .flatMap(getConfigurationArtifacts)
+      // We obtain all the artifacts in this configuration, which has been
+      // configured to extend all valid resolvable configurations to obtain the
+      // artifact jars present in all of the variants in an Android project
+      val bloopAndroidConfig = project.getConfiguration("bloopAndroidConfig")
+      assert(bloopAndroidConfig != null, "Missing bloopAndroidConfig!")
+      val allArtifacts = getConfigurationArtifacts(bloopAndroidConfig)
+
       val additionalModules = allArtifacts
         .filterNot(f => allOutputsToSourceSets.contains(f.getFile))
         .map(artifactToConfigModule(_, project))
@@ -351,21 +354,13 @@ class BloopConverter(parameters: BloopParameters) {
         targetDir
       )
 
-      // get all configurations dependencies - these go into the resolutions as the user can create their own config dependencies (e.g. compiler plugin jar)
-      // some configs aren't allowed to be resolved - hence the catch
-      // this can bring too many artifacts into the resolution section (e.g. junit on main projects) but there's no way to know which artifact is required by which sourceset
-      // filter out internal scala plugin configurations
-      val modules = project.getConfigurations.asScala
-        .filter(_.isCanBeResolved)
-        .filter(c =>
-          !List(
-            "incrementalScalaAnalysisElements",
-            "incrementalScalaAnalysisFormain",
-            "incrementalScalaAnalysisFortest",
-            "zinc"
-          ).contains(c.getName)
-        )
-        .flatMap(getConfigurationArtifacts)
+      // Each source set has a bloop config name that extends the most important
+      // source set configurations to properly retrieve all relevant artifact jars
+      val bloopConfigName = generateBloopConfigName(sourceSet)
+      val bloopConfig = project.getConfiguration(bloopConfigName)
+      assert(bloopConfig != null, s"Missing $bloopConfigName configuration in project!")
+
+      val modules = getConfigurationArtifacts(bloopConfig)
         .filter(f =>
           !allArchivesToSourceSets.contains(f.getFile) &&
             !allOutputDirsToSourceSets.contains(f.getFile)
@@ -432,18 +427,30 @@ class BloopConverter(parameters: BloopParameters) {
     // get only jar artifacts
     val artifactType = Attribute.of("artifactType", classOf[String])
     val attributeType = "jar"
+
     configuration.getIncoming
       .artifactView(new Action[ViewConfiguration] {
         override def execute(viewConfig: ViewConfiguration): Unit = {
-          viewConfig.setLenient(true)
-          viewConfig.attributes(new Action[AttributeContainer] {
-            override def execute(
-                attributeContainer: AttributeContainer
-            ): Unit = {
-              attributeContainer.attribute(artifactType, attributeType)
-              ()
-            }
-          })
+          viewConfig
+            .lenient(true)
+            .componentFilter(new Spec[ComponentIdentifier] {
+              def isSatisfiedBy(id: ComponentIdentifier): Boolean = {
+                // Filter out project dependencies as we're not interested in them
+                // Furthermore, if there are any configuration transforms Gradle
+                // must check that the artifact jars are present, and if we depend
+                // on project dependencies then it'll fail because project
+                // dependencies don't have existing jars at the time of resolution
+                !(id.isInstanceOf[ProjectComponentIdentifier])
+              }
+            })
+            .attributes(new Action[AttributeContainer] {
+              override def execute(
+                  attributeContainer: AttributeContainer
+              ): Unit = {
+                attributeContainer.attribute(artifactType, attributeType)
+                ()
+              }
+            })
           ()
         }
       })
