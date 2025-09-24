@@ -32,8 +32,8 @@ import org.junit.rules.TemporaryFolder
  */
 
 // minimum supported version
-class ConfigGenerationSuite_5_0 extends ConfigGenerationSuite {
-  protected def gradleVersion: String = "5.0"
+class ConfigGenerationSuite_5_1 extends ConfigGenerationSuite {
+  protected def gradleVersion: String = "5.1.1"
 }
 
 // kept to test Gradle API changes
