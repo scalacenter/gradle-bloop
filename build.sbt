@@ -31,6 +31,9 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / semanticdbEnabled := true
 
+Test / parallelExecution := true
+Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
+
 lazy val V = new {
   val androidGradle = "8.7.3"
   val bloopConfig = "1.5.5"
@@ -55,7 +58,6 @@ lazy val plugin = (project in file("."))
       case Some((2, 13)) => "-Wunused"
       case _ => ""
     }),
-    testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a"),
     libraryDependencies ++= List(
       "dev.gradleplugins" % "gradle-api" % V.gradle % Provided,
       "dev.gradleplugins" % "gradle-test-kit" % V.gradle % Provided,
