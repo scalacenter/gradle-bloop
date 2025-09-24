@@ -38,7 +38,7 @@ class ConfigGenerationSuite_5_1 extends ConfigGenerationSuite {
 
 // kept to test Gradle API changes
 class ConfigGenerationSuite_7_5 extends ConfigGenerationSuite {
-  protected def gradleVersion: String = "7.5"
+  protected def gradleVersion: String = "7.5.1"
 }
 
 // maximum supported version
