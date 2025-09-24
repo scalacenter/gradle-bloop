@@ -7,14 +7,16 @@ object SemVer {
   case class Version(
       major: Int,
       minor: Int,
-      patch: Int,
+      patch: Option[Int],
       releaseCandidate: Option[Int],
       milestone: Option[Int]
   ) {
     def >(that: Version): Boolean = {
       this.major > that.major ||
       (this.major == that.major && this.minor > that.minor) ||
-      (this.major == that.major && this.minor == that.minor && this.patch > that.patch) ||
+      (this.major == that.major && this.minor == that.minor && (for {
+        p1 <- this.patch; p2 <- that.patch
+      } yield p1 > p2).getOrElse(true)) ||
       // 3.0.0-RC1 > 3.0.0-M1
       this.releaseCandidate.isDefined && that.milestone.isDefined ||
       // 3.0.0 > 3.0.0-M2 and 3.0.0 > 3.0.0-RC1
@@ -23,7 +25,6 @@ object SemVer {
       comparePreRelease(that, (v: Version) => v.releaseCandidate) ||
       // 3.0.0-M2 > 3.0.0-M1
       comparePreRelease(that, (v: Version) => v.milestone)
-
     }
 
     def >=(that: Version): Boolean = this > that || this == that
@@ -38,37 +39,48 @@ object SemVer {
     ): Boolean = {
       val thisPrerelease = preRelease(this)
       val thatPrerelease = preRelease(that)
-      this.major == that.major && this.minor == that.minor && this.patch == that.patch &&
+      this.major == that.major && this.minor == that.minor && (this.patch.isEmpty || that.patch.isEmpty || this.patch == that.patch) &&
       thisPrerelease.isDefined && thatPrerelease.isDefined && thisPrerelease
         .zip(thatPrerelease)
         .exists { case (a, b) => a > b }
     }
 
-    override def toString: String =
-      List(
-        Some(s"$major.$minor.$patch"),
-        releaseCandidate.map(s => s"-RC$s"),
-        milestone.map(s => s"-M$s")
-      ).flatten.mkString("")
+    override def toString: String = {
+      val base = patch match {
+        case Some(p) => s"$major.$minor.$p"
+        case None => s"$major.$minor"
+      }
+      val suffix = releaseCandidate.map(s => s"-RC$s").orElse(milestone.map(s => s"-M$s"))
+      base + suffix.getOrElse("")
+    }
 
   }
 
   object Version {
     def fromString(version: String): Version = {
-      val Array(major, minor, patch) =
-        version.replaceAll("(-|\\+).+$", "").split('.').map(_.toInt)
+      // Extract numeric core (may be 1, 2 or 3 segments) and keep the rest (pre-release / metadata)
+      val core = version.takeWhile(c => c.isDigit || c == '.')
+      val remainder = version.drop(core.length)
 
-      val prereleaseString = version.stripPrefix(s"$major.$minor.$patch")
+      val parts = core.split("\\.").filter(_.nonEmpty).toList
+      def toIntOpt(s: String) = Try(s.toInt).toOption
 
-      def fromSuffix(name: String) = {
-        if (prereleaseString.startsWith(name))
-          Try(
-            prereleaseString.stripPrefix(name).replaceAll("\\-.*", "").toInt
-          ).toOption
-        else None
+      val major = parts.lift(0).flatMap(toIntOpt).getOrElse(0)
+      val minor = parts.lift(1).flatMap(toIntOpt).getOrElse(0)
+      val patch = parts.lift(2).flatMap(toIntOpt)
+
+      def extract(tag: String): Option[Int] = {
+        val i = remainder.indexOf(tag)
+        if (i >= 0) {
+          val after = remainder.substring(i + tag.length)
+          val digits = after.takeWhile(_.isDigit)
+          // also allow forms like -RC1-suffix
+          if (digits.nonEmpty) Try(digits.toInt).toOption else None
+        } else None
       }
-      val releaseCandidate = fromSuffix("-RC")
-      val milestone = fromSuffix("-M")
+
+      val releaseCandidate = extract("-RC")
+      val milestone = extract("-M")
 
       Version(major, minor, patch, releaseCandidate, milestone)
     }
