@@ -41,9 +41,17 @@ class ConfigGenerationSuite_7_5 extends ConfigGenerationSuite {
   protected def gradleVersion: String = "7.5.1"
 }
 
-// maximum supported version
 class ConfigGenerationSuite_8_0 extends ConfigGenerationSuite {
   protected def gradleVersion: String = "8.0.1"
+}
+
+class ConfigGenerationSuite_8_14 extends ConfigGenerationSuite {
+  protected def gradleVersion: String = "8.14.3"
+}
+
+// maximum supported version
+class ConfigGenerationSuite_9_1 extends ConfigGenerationSuite {
+  protected def gradleVersion: String = "9.1.0"
 }
 /*
 // needed for scala android plugin testing - Disabled - see #worksWithAndroidScalaPlugin
@@ -53,41 +61,54 @@ class ConfigGenerationSuite_Android_Scala_plugin extends ConfigGenerationSuite {
  */
 
 object ConfigGenerationSuite {
-  // gradle version -> maximum supported Java version
-  val versionList = List(
-    "2.0" -> "8",
-    "4.3" -> "9",
-    "4.7" -> "10",
-    "5.0" -> "11",
-    "5.4" -> "12",
-    "6.0" -> "13",
-    "6.3" -> "14",
-    "6.7" -> "15",
-    "7.0" -> "16",
-    "7.3" -> "17",
-    "7.5" -> "18",
-    "7.6" -> "19",
-    "999" -> "20"
+  // supported Java version -> (minimum Gradle version, maximum Gradle version)
+  // ref: https://docs.gradle.org/current/userguide/compatibility.html
+  val gradeSupportlist: List[(Int, (String, Option[String]))] = List(
+    8 -> ("2.0", Some("8.14")),
+    9 -> ("4.3", Some("8.14")),
+    10 -> ("4.7", Some("8.14")),
+    11 -> ("5.0", Some("8.14")),
+    12 -> ("5.4", Some("8.14")),
+    13 -> ("6.0", Some("8.14")),
+    14 -> ("6.3", Some("8.14")),
+    15 -> ("6.7", Some("8.14")),
+    16 -> ("7.0", Some("8.14")),
+    17 -> ("7.3", None),
+    18 -> ("7.5", None),
+    19 -> ("7.6", None),
+    20 -> ("8.3", None),
+    21 -> ("8.5", None),
+    22 -> ("8.8", None),
+    23 -> ("8.10", None),
+    24 -> ("8.14", None),
+    25 -> ("9.1.0", None)
   )
 }
 abstract class ConfigGenerationSuite extends BaseConfigSuite {
   protected def gradleVersion: String
-  protected def supportsCurrentJavaVersion: Boolean =
-    ConfigGenerationSuite.versionList
-      .filter(f => f._1 > gradleVersion)
-      .headOption
-      .map(f => !Properties.isJavaAtLeast(f._2))
-      .getOrElse(true)
+  protected def supportsCurrentJavaVersion: Boolean = {
+    val currentJava = Properties.javaSpecVersion match {
+      case "1.8" => 8
+      case v => v.toInt
+    }
+    ConfigGenerationSuite.gradeSupportlist.exists {
+      case (javaVer, (min, maxOpt)) =>
+        SemVer.isCompatibleVersion(min, gradleVersion) &&
+        maxOpt.forall(max => SemVer.isLaterVersion(gradleVersion, max)) &&
+        javaVer == currentJava
+    }
+  }
 
-  private def supportsAndroid: Boolean = gradleVersion >= "6.1.1"
+  private def supportsAndroid: Boolean = SemVer.isCompatibleVersion("6.1.1", gradleVersion)
   // private def supportsAndroidScalaPlugin: Boolean = gradleVersion == "6.6"
-  private def supportsScala3: Boolean = gradleVersion >= "7.3"
-  private def canConsumeTestRuntime: Boolean = gradleVersion < "7.0"
-  private def supportsReleaseFlag: Boolean = gradleVersion >= "6.6"
-  private def supportsLazyArchives: Boolean = gradleVersion >= "4.9"
-  private def supportsTestFixtures: Boolean = gradleVersion >= "5.6"
-  private def supportsMainClass: Boolean = gradleVersion >= "6.4"
-  private def supportsScalaCompilerPlugins: Boolean = gradleVersion >= "6.4"
+  private def supportsScala3: Boolean = SemVer.isCompatibleVersion("7.3", gradleVersion)
+  private def canConsumeTestRuntime: Boolean = !SemVer.isCompatibleVersion("7.0", gradleVersion)
+  private def supportsReleaseFlag: Boolean = SemVer.isCompatibleVersion("6.6", gradleVersion)
+  private def supportsLazyArchives: Boolean = SemVer.isCompatibleVersion("4.9", gradleVersion)
+  private def supportsTestFixtures: Boolean = SemVer.isCompatibleVersion("5.6", gradleVersion)
+  private def supportsMainClass: Boolean = SemVer.isCompatibleVersion("6.4", gradleVersion)
+  private def supportsScalaCompilerPlugins: Boolean =
+    SemVer.isCompatibleVersion("6.4", gradleVersion)
 
   // folder to put test build scripts and java/scala source files
   private val testProjectDir_ = new TemporaryFolder()
@@ -2620,7 +2641,7 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
   }
 
   @Test def releaseFlagsGeneratedCorrectly(): Unit = {
-    assumeTrue(supportsReleaseFlag)
+    assumeTrue(supportsReleaseFlag && supportsCurrentJavaVersion)
     val buildFile = testProjectDir.newFile("build.gradle")
     testProjectDir.newFolder("src", "main", "scala")
     writeBuildScript(
@@ -3025,6 +3046,8 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
     writeBuildScript(
       buildFile,
       s"""
+         |import org.gradle.util.GradleVersion
+         |
          |plugins {
          |  id 'bloop'
          |}
@@ -3032,10 +3055,13 @@ abstract class ConfigGenerationSuite extends BaseConfigSuite {
          |apply plugin: 'java'
          |apply plugin: 'bloop'
          |
-         |mainClassName = 'org.main.name'
-         |
          |application {
          |  applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-Xmx16g"]
+         |  if (GradleVersion.current() < GradleVersion.version("8.0.1")) {
+         |    mainClassName = 'org.main.name'
+         |  } else {
+         |    mainClass = 'org.main.name'
+         |  }
          |}
       """.stripMargin
     )
