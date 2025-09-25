@@ -580,7 +580,7 @@ class BloopConverter(parameters: BloopParameters) {
       archiveTask <- tasksWithType(project, classOf[AbstractArchiveTask])
       sourcePathObj <- getSourcePaths(archiveTask.getRootSpec())
       sourcePath <- sourceSets.find(_.getOutput == sourcePathObj)
-    } yield archiveTask.getArchivePath -> sourcePath
+    } yield archiveTask.getArchiveFile.get.getAsFile -> sourcePath
     archiveSourceSets.toMap
   }
 
