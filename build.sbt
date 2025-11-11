@@ -35,7 +35,7 @@ Test / parallelExecution := true
 Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-a")
 
 lazy val V = new {
-  val androidGradle = "8.13.0"
+  val androidGradle = "8.13.1"
   val bloopConfig = "1.5.5"
   val classgraph = "4.8.184"
   val gradle = "5.1"
