@@ -44,7 +44,7 @@ lazy val V = new {
 
   val scala211 = "2.11.12"
   val scala212 = "2.12.21"
-  val scala213 = "2.13.18"
+  val scala213 = "3.8.1"
 }
 
 lazy val plugin = (project in file("."))
